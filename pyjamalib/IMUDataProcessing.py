@@ -798,7 +798,7 @@ class IMUDataProcessing:
         return Angles
 
     def GetQuaternionFromAngle(Angles):
-         """Estimates the quaternion orientation
+        """Estimates the quaternion orientation
             from euler angles.
 
         Parameters
@@ -1109,7 +1109,7 @@ class IMUDataProcessing:
         
         return np.asarray(complementarF)
 
-    def ComplementaryFilterGNUpdate(self,acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
+    def ComplementaryFilterGNUpdate(acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
         """Filters data in real time. Implemented 
            using the Gauss-Newton optimizer. 
 
@@ -1174,7 +1174,7 @@ class IMUDataProcessing:
         self.qGyro_1 = qGyro
         return Angles
 
-    def ComplementaryFilterGN(acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
+    def ComplementaryFilterGN(self,acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
         """Filters data offline. Implemented 
            using the Gauss-Newton optimizer. 
 
@@ -1479,7 +1479,7 @@ class IMUDataProcessing:
         return np.asarray(Angles).T
 
     def KalmanGN(acc,gyr,mag,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
-       """Filters data offline. Kalman filter
+        """Filters data offline. Kalman filter
         using the Gauss-Newton optimizer. 
 
         Parameters
@@ -1613,7 +1613,7 @@ class IMUDataProcessing:
         return np.asarray(Angles).T
 
     def Madgwick9DOFUpdate(self,Gyroscope, Accelerometer, Magnetometer, SamplePeriod = 1/75, Beta = 1):
-       """Filters data in real time. 9 degrees of
+        """Filters data in real time. 9 degrees of
           freedom MadgwickAHRS filter. 
 
         Parameters
@@ -1695,7 +1695,7 @@ class IMUDataProcessing:
         return self.Quaternion
         
     def Madgwick6DOFUpdate(self, Gyroscope, Accelerometer,SamplePeriod = 1/75, Beta = 1):
-       """Filters data in real time. 6 degrees of
+        """Filters data in real time. 6 degrees of
           freedom MadgwickAHRS filter. 
 
         Parameters
@@ -1757,7 +1757,7 @@ class IMUDataProcessing:
         return np.asarray(self.Quaternion)
 
     def MadgwickAHRS(acc,gyr,mag,freq,beta1=.9,beta2=.01):
-       """Filters data in real time. 9 degrees of
+        """Filters data in real time. 9 degrees of
           freedom MadgwickAHRS filter. 
 
         Parameters

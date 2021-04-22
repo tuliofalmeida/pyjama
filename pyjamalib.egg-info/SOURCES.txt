@@ -1,0 +1,11 @@
+README.md
+setup.cfg
+setup.py
+pyjamalib/DataHandler.py
+pyjamalib/IMUDataProcessing.py
+pyjamalib/__init__.py
+pyjamalib.egg-info/PKG-INFO
+pyjamalib.egg-info/SOURCES.txt
+pyjamalib.egg-info/dependency_links.txt
+pyjamalib.egg-info/requires.txt
+pyjamalib.egg-info/top_level.txt
