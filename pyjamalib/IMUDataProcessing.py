@@ -20,7 +20,7 @@ class IMUDataProcessing:
     Developed by T.F Almeida in 25/03/2021
     
     For more information see:
-    https://github.com/tuliofalmeida    
+    https://github.com/tuliofalmeida/pyjama    
     """
     def __init__(self, Quaternion = [1,0,0,0]): 
         """Pass the necessary variables to run the class.
@@ -34,7 +34,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida   
+        https://github.com/tuliofalmeida/pyjama   
         """
         self.Quaternion = np.asarray(Quaternion)
         self.qGyro_1 = np.zeros(4)
@@ -64,7 +64,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """
+        https://github.com/tuliofalmeida/pyjama  """
         return atan2(-acc[0],sqrt((acc[1]*acc[1]) + (acc[2] * acc[2])))
 
     def get_pitch(acc):
@@ -85,7 +85,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """
+        https://github.com/tuliofalmeida/pyjama  """
         return atan2(acc[1],sqrt((acc[0] * acc[0]) + (acc[2] * acc[2])))
 
     def get_yaw(roll,pitch):
@@ -110,7 +110,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """
+        https://github.com/tuliofalmeida/pyjama  """
         Yh = (mag[1] * cos(roll)) - (mag[2] * sin(roll))
         Xh = (mag[0] * cos(pitch))+ (mag[1] * sin(roll)*sin(pitch)) + (mag[2] * cos(roll) * sin(pitch))	
         return atan2(Yh, Xh)
@@ -137,7 +137,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """
+        https://github.com/tuliofalmeida/pyjama  """
         quat = []
         euler = []
         quat.append(np.asarray(q))
@@ -181,7 +181,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         q0 = cos(np.divide(angle,2))
         q1 = -axis[0]*sin(np.divide(angle,2))
@@ -216,7 +216,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         kx = axis[0]
         ky = axis[1]
@@ -267,7 +267,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         R = np.zeros((3,3))
 
@@ -307,7 +307,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         R = np.zeros((3,3))
         q = np.asarray(q)
@@ -354,7 +354,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         R = np.zeros((3,3))
 
@@ -390,7 +390,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         qConj = np.zeros((4))
         if q.shape == (4,):
@@ -429,7 +429,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         ab = np.zeros(4)
 
@@ -467,7 +467,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         if np.size(np.asarray(R).shape) == 2:
             row, col = np.asarray(R).shape
@@ -518,7 +518,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         if np.size(np.asarray(R).shape) == 2:
             row, col = np.asarray(R).shape
@@ -599,7 +599,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
 
         # Compute the quaternion Jacobian
@@ -674,7 +674,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         # Compute the rotation transformation matrix based on quaternions
 
@@ -727,7 +727,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         # Compute the new step quaternions by mean of the Gauss-Newton method
         i = 0
@@ -784,7 +784,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         q0=q[0]
         q1=q[1]
@@ -821,7 +821,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """       
         q = np.zeros((4,1))
         x = Angles[:,0]*pi/180
@@ -866,7 +866,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         q1=q[0]
         q2=q[1]
@@ -951,7 +951,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         a1 = a[0]
         a2 = a[1]
@@ -997,7 +997,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
         
         For more information see:
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         nyq = 0.5 * freq
         normal_cutoff = cutoff / nyq
@@ -1026,7 +1026,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
         
         For more information see:
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         b, a = butter_lowpass(cutoff, freq, order=order)
         y = signal.lfilter(b, a, data)
@@ -1053,7 +1053,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
         
         For more information see:
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         out = []
         for i in range(len(IN)):
@@ -1096,7 +1096,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
         
         For more information see:
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         angle_x = roll[0]
         angle_y = pitch[0]
@@ -1145,7 +1145,7 @@ class IMUDataProcessing:
         
         For more information see:
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """        
         AccF = acc/np.linalg.norm(acc)
         MagnF = mag/np.linalg.norm(mag)
@@ -1210,7 +1210,7 @@ class IMUDataProcessing:
         
         For more information see:
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """ 
         CF = IMUDataProcessing()
         acqSize = acc.shape[0]
@@ -1259,7 +1259,7 @@ class IMUDataProcessing:
         
         For more information see:
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """ 
         AccF = acc/np.linalg.norm(acc)
         MagnF = mag/np.linalg.norm(mag)
@@ -1333,7 +1333,7 @@ class IMUDataProcessing:
         
         For more information see:
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """ 
         CF = IMUDataProcessing()
         acqSize = acc.shape[0]
@@ -1382,7 +1382,7 @@ class IMUDataProcessing:
         
         For more information see:
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """         
         acqSize = acc.shape[0]
 
@@ -1519,7 +1519,7 @@ class IMUDataProcessing:
         
         For more information see:
         https://github.com/danicomo/9dof-orientation-estimation
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """                 
         acqSize = acc.shape[0]
 
@@ -1650,7 +1650,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """     
         q = self.Quaternion # short name local variable for readability
 
@@ -1730,7 +1730,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         q = self.Quaternion # short name local variable for readability
 
@@ -1800,7 +1800,7 @@ class IMUDataProcessing:
         For more information see:
         Test scripts
         http://www.x-io.co.uk/node/8#quaternions
-        https://github.com/tuliofalmeida
+        https://github.com/tuliofalmeida/pyjama
         """
         madgwick = []
         madgFilter = IMUDataProcessing(Quaternion=np.asarray([[1,0,0,0]]))
@@ -1835,7 +1835,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """
+        https://github.com/tuliofalmeida/pyjama  """
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
         return r_value**2
 
@@ -1859,7 +1859,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """
+        https://github.com/tuliofalmeida/pyjama  """
         acqSize = data.shape[0]
         mean = np.asarray([np.mean(data[0,:]),np.mean(data[1,:]),np.mean(data[2,:])])
         std =  np.asarray([np.std(data[0,:]),np.std(data[1,:]),np.std(data[2,:])])
@@ -1912,7 +1912,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """ 
+        https://github.com/tuliofalmeida/pyjama  """ 
         if df == True:
             jointAngle = csvToFloat(jointAngle)
             time = csvToFloat(time)
@@ -1991,7 +1991,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """             
+        https://github.com/tuliofalmeida/pyjama  """             
         if df == True:
             all_x = csvToFloat(all_x)
             all_y = csvToFloat(all_y)
@@ -2060,7 +2060,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """ 
+        https://github.com/tuliofalmeida/pyjama  """ 
         crossings = np.where(np.diff(np.signbit(data-treshold)))[0]
         plt.figure(figsize=(12,9))
         plt.plot(time,data)
@@ -2098,7 +2098,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """ 
+        https://github.com/tuliofalmeida/pyjama  """ 
         rom = []
         if df == True:
             data = DataHandler.csvToFloat(data)
@@ -2135,7 +2135,7 @@ class IMUDataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida  """ 
+        https://github.com/tuliofalmeida/pyjama  """ 
         x=0
         for i in range(len(data)):
             x = x + max(data[i])-min(data[i])

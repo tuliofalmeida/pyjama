@@ -33,7 +33,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """     
         data = open(pathData,"r").read()
         tempo = open(pathTime,"r")
@@ -86,7 +86,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """  
 
         temp = (esp_data.split(';'))
@@ -134,7 +134,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """  
         time = []
         acc = []
@@ -189,7 +189,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """  
         tempo = tempoBasal * freq
         #ACC  
@@ -281,7 +281,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """         
         time,acc,gyr,mag= DataHandler.get_imu_data(data)
         time_calib,acc_calib,gyr_calib,mag_calib = DataHandler.get_imu_data(data_calib)
@@ -409,7 +409,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """         
         if end == None:
             end = len(df_first_joint['Time'])
@@ -701,7 +701,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """  
         with open(path + filename,'w') as file:
             x = csv.writer(file)
@@ -730,7 +730,7 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """  
         x = pd.to_numeric(data[0:])
         return x.to_numpy()
@@ -759,18 +759,22 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida    
+        https://github.com/tuliofalmeida/pyjama    
         """  
         return np.asarray([DataHandler.csvToFloat(dfX),DataHandler.csvToFloat(dfY),DataHandler.csvToFloat(dfZ)]).T
     
-    def viconDataToList(dataPath):
+    def vicon2dict(dataPath, freq):
         """Convert Vicon's orientation data into a Dictionary.
-        Device probably used Vicon Blade.
+        Device probably used Vicon Blade. File type = '.txt'.
 
         Parameters
         ----------
         dataPath:  string
             Data path.
+
+        freq: int
+            Data aquisition frequency to calculate
+            the vector time for plots.
         
         Return
         ------
@@ -790,24 +794,30 @@ class DataHandler:
         Real-time Full-Body Motion Capture from Video and IMUs
         https://ieeexplore.ieee.org/document/8374599
 
-        https://github.com/tuliofalmeida/pyjama   
+        https://github.com/tuliofalmeida/pyjama  
         """
         df = pd.read_csv(dataPath, sep='\t')
         dataDict = {}
         columns = df.columns
+        size = int(len(df[columns[0]]))
+        
         for ç in range(len(columns)-1):
-            temp = []
+            k = 0
+            quaternion = np.zeros((size,4))
             for i in df[columns[ç]]:
                 t = i.split(' ')
-                temp2 = [];
+                temp2 = []
                 for j in t:
                     temp2.append(float(j))
-                temp.append(temp2)
-            dataDict[names[ç]] = temp
+                quaternion[k,:] = temp2
+                k +=1
+            dataDict[columns[ç]] = quaternion
+        
+        dataDict['Time'] = np.arange(0,size/freq,1/freq)
 
         return dataDict
-    
-    def xSens2dict(dataPath):
+        
+    def xSens2dict(dataPath,freq):
         """Convert Xsens MTw wireless IMU data 
         into a dictionary.Possibly it works for 
         other sensors of the same company, since
@@ -820,6 +830,10 @@ class DataHandler:
         dataPath:  string
             Data path.
         
+        freq: int
+            Data aquisition frequency to calculate
+            the vector time for plots.
+        
         Return
         ------
         dataDict: dictionary
@@ -827,7 +841,7 @@ class DataHandler:
             each part of the body and orientation 
             (Quaternion, Acelerometer, Gyroscope 
             and Magnetometer). The autocomplete 
-            works.
+            works. File type = '.sensors'.
 
         See Also
         --------
@@ -840,7 +854,7 @@ class DataHandler:
         Real-time Full-Body Motion Capture from Video and IMUs
         https://ieeexplore.ieee.org/document/8374599
 
-        https://github.com/tuliofalmeida/pyjama   
+        https://github.com/tuliofalmeida/pyjama  
         """
         df = pd.read_csv(dataPath)
         nameList = []
@@ -855,21 +869,28 @@ class DataHandler:
                 outputNames.append(strTemp[0])
                 output.append(listTemp)
         name = set(outputNames)
+        nameList = list(name)
         dataDict = {}
+        size = int(len(outputNames)/len(name))
+        quaternion = np.zeros((size,4))
+        accel = np.zeros((size,3))
+        gyro  = np.zeros((size,3))
+        mag   = np.zeros((size,3))
         for j in name:
-            quaternion = []
-            accel = []
-            gyro = []
-            mag = []
-            for i in range(len(output)):
+            k = 0
+            for i in range(len(outputNames)):
                 if outputNames[i] == j:
-                    quaternion.append(output[i][0:4])
-                    accel.append(output[i][4:7])
-                    gyro.append(output[i][7:10])
-                    mag.append(output[i][10:13])
-            dataDict[j] = (pd.DataFrame({'Quaternion':quaternion,
-                                    'Accelerometer':accel,
-                                    'Gyroscope':gyro,
-                                    'Magnetometer':mag
-                                    }))
+                    quaternion[k,:] = output[i-1][0:4]
+                    accel[k,:] = output[i-1][4:7]
+                    gyro[k,:] = output[i-1][7:10]
+                    mag[k,:] = output[i-1][10:13]
+                    k += 1
+            dataDict[j] = {'Quaternion':quaternion,
+                        'Accelerometer':accel,
+                        'Gyroscope':gyro,
+                        'Magnetometer':mag
+                                        }
+            
+        dataDict['Time'] = np.arange(0,size/freq,1/freq)
+        
         return dataDict

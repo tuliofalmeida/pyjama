@@ -12,7 +12,10 @@ install = [
   'collections',
   'scipy'
 ]
-  
+
+#python setup.py bdist_wheel 
+#twine upload dist/*
+ 
 with open("README.md", "r") as fh:
     long_description = fh.read()
   
@@ -20,7 +23,7 @@ setuptools.setup(
 
     name="pyjamalib",
     packages = ['pyjamalib'],
-    version="0.1.1",
+    version="0.1.7",
     author="Túlio F. Almeida",
     author_email="tuliofalmeida@hotmail.com",
     description="A library for analyze joint angles from IMU data",
