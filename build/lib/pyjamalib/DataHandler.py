@@ -762,3 +762,114 @@ class DataHandler:
         https://github.com/tuliofalmeida    
         """  
         return np.asarray([DataHandler.csvToFloat(dfX),DataHandler.csvToFloat(dfY),DataHandler.csvToFloat(dfZ)]).T
+    
+    def viconDataToList(dataPath):
+        """Convert Vicon's orientation data into a Dictionary.
+        Device probably used Vicon Blade.
+
+        Parameters
+        ----------
+        dataPath:  string
+            Data path.
+        
+        Return
+        ------
+        dataDict: dictionary
+            Dictionary separating the data of 
+            each part of the body and orientation 
+            in quaternion. The autocomplete works.
+
+        See Also
+        --------
+        Developed by T.F Almeida in 23/04/2021
+
+        For more information see:
+        Dataset used to develop this function was Total Capture.
+        https://cvssp.org/data/totalcapture/
+
+        Real-time Full-Body Motion Capture from Video and IMUs
+        https://ieeexplore.ieee.org/document/8374599
+
+        https://github.com/tuliofalmeida/pyjama   
+        """
+        df = pd.read_csv(dataPath, sep='\t')
+        dataDict = {}
+        columns = df.columns
+        for ç in range(len(columns)-1):
+            temp = []
+            for i in df[columns[ç]]:
+                t = i.split(' ')
+                temp2 = [];
+                for j in t:
+                    temp2.append(float(j))
+                temp.append(temp2)
+            dataDict[names[ç]] = temp
+
+        return dataDict
+    
+    def xSens2dict(dataPath):
+        """Convert Xsens MTw wireless IMU data 
+        into a dictionary.Possibly it works for 
+        other sensors of the same company, since
+        it returns quaternion ([1,0,0,0]), 
+        accelerometer (XYZ), gyroscope (XYZ) and 
+        magnetometer (XYZ).
+
+        Parameters
+        ----------
+        dataPath:  string
+            Data path.
+        
+        Return
+        ------
+        dataDict: dictionary
+            Dictionary separating the data of 
+            each part of the body and orientation 
+            (Quaternion, Acelerometer, Gyroscope 
+            and Magnetometer). The autocomplete 
+            works.
+
+        See Also
+        --------
+        Developed by T.F Almeida in 23/04/2021
+
+        For more information see:
+        Dataset used to develop this function was Total Capture.
+        https://cvssp.org/data/totalcapture/
+
+        Real-time Full-Body Motion Capture from Video and IMUs
+        https://ieeexplore.ieee.org/document/8374599
+
+        https://github.com/tuliofalmeida/pyjama   
+        """
+        df = pd.read_csv(dataPath)
+        nameList = []
+        output = []
+        outputNames = []
+        for i in range(len(df)):
+            strTemp = ((df[df.columns[0]][i]).split('\t'))
+            if len(strTemp) == 14:
+                listTemp = []
+                for j in range(len(strTemp)-1):
+                    listTemp.append(float(strTemp[j+1]))
+                outputNames.append(strTemp[0])
+                output.append(listTemp)
+        name = set(outputNames)
+        dataDict = {}
+        for j in name:
+            quaternion = []
+            accel = []
+            gyro = []
+            mag = []
+            for i in range(len(output)):
+                if outputNames[i] == j:
+                    quaternion.append(output[i][0:4])
+                    accel.append(output[i][4:7])
+                    gyro.append(output[i][7:10])
+                    mag.append(output[i][10:13])
+            dataDict[j] = (pd.DataFrame({'Quaternion':quaternion,
+                                    'Accelerometer':accel,
+                                    'Gyroscope':gyro,
+                                    'Magnetometer':mag
+                                    }))
+        return dataDict
