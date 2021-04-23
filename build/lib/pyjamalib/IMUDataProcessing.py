@@ -41,6 +41,8 @@ class IMUDataProcessing:
         self.qGyro_1[0] = 1
         self.qFilt_1 = np.zeros(4)
         self.qFilt_1[0] = 1
+        self.qOsserv_1 = np.zeros(4)
+        self.qOsserv_1[0] = 1
         self.accF_Length = 13
         self.i = 0
 
@@ -1109,7 +1111,7 @@ class IMUDataProcessing:
         
         return np.asarray(complementarF)
 
-    def ComplementaryFilterGNUpdate(acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
+    def ComplementaryFilterGNUpdate(self,acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
         """Filters data in real time. Implemented 
            using the Gauss-Newton optimizer. 
 
@@ -1174,7 +1176,7 @@ class IMUDataProcessing:
         self.qGyro_1 = qGyro
         return Angles
 
-    def ComplementaryFilterGN(self,acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
+    def ComplementaryFilterGN(acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
         """Filters data offline. Implemented 
            using the Gauss-Newton optimizer. 
 
@@ -1221,7 +1223,7 @@ class IMUDataProcessing:
 
         return np.asarray(Angles).T
 
-    def ComplementaryFilterGDUpdate(acc,gyr,mag,dt,alpha=.01,beta=.5, conj = True):
+    def ComplementaryFilterGDUpdate(self,acc,gyr,mag,dt,alpha=.01,beta=.5, conj = True):
         """Filters data in real time. Implemented 
            using the Gradient Descendent optimizer. 
 
@@ -1264,8 +1266,8 @@ class IMUDataProcessing:
 
         dq = 0.5*(IMUDataProcessing.QuaternionProduct(self.qFilt_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))
         dqnorm = np.linalg.norm(dq)
-        mu = 10*dqnorm[0,i]*dt
-        qOsserv = IMUDataProcessing.GradientDescent(AccF,MagnF,qOsserv_1,mu)
+        mu = 10*dqnorm*dt
+        qOsserv = IMUDataProcessing.GradientDescent(AccF,MagnF,self.qOsserv_1,mu)
         qOsserv = beta*qOsserv/np.linalg.norm(qOsserv)
         
         if (self.i <= self.accF_Length+9):
@@ -1289,8 +1291,11 @@ class IMUDataProcessing:
             Angles = IMUDataProcessing.GetAnglesFromQuaternion(qFilt)
 
         self.qFilt_1 = qFilt
-        self.qGyro_1 = qGyro
+        # self.qGyro_1 = qGyro
+        self.qOsserv_1 = qOsserv
         return Angles
+
+
 
     def ComplementaryFilterGD(acc,gyr,mag,dt,alpha=.01,beta=.5, conj = True):
         """Filters data offline. Implemented 
