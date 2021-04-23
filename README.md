@@ -1,1 +1,50 @@
-# pyjama
+# PyJama - Python for Joint Angle Measurement Acquisition
+---------------------------------------------------------
+PyJama is a friendly python library for analyzing human kinematics data. Aimed at analyzing data from IMU's, MIMU's, data from optical devices and in the future tracking data from deeplearning models.
+
+# Installation
+--------------
+
+The latest stable release is available on PyPI, and you can install it by saying
+```
+pip install pyjamalib
+```
+Anaconda users can install using ``conda-forge``:
+```
+conda install -c conda-forge pyjamalib
+```
+
+To build PyJama from source, say `python setup.py build`.
+Then, to install PyJama, say `python setup.py install`.
+If all went well, you should be able to execute the demo scripts under `examples/`
+(OS X users should follow the installation guide given below).
+
+Alternatively, you can download or clone the repository and use `pip` to handle dependencies:
+
+```
+unzip pyjama.zip
+pip install -e pyjama
+```
+or
+```
+git clone https://github.com/tuliofalmeida/pyjama
+pip install -e pyjama
+```
+
+By calling `pip list` you should see `pyrat` now as an installed package:
+```
+pyrat (0.x.x, /path/to/pyrat)
+```
+
+# Development Team:
+-------------------
+
+- [Tulio Almeida]
+## Advisors
+- [Abner Cardoso] 
+- [André Dantas]
+<!-- Links -->
+[Abner Cardoso]:https://github.com/abnr
+[Tulio Almeida]:https://github.com/tuliofalmeida
+[André Dantas]:https://github.com/lordcobisco
+
