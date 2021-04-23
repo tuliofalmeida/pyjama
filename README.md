@@ -22,27 +22,27 @@ If all went well, you should be able to execute the demo scripts under `examples
 Alternatively, you can download or clone the repository and use `pip` to handle dependencies:
 
 ```
-unzip pyjama.zip
-pip install -e pyjama
+unzip pyjamalib.zip
+pip install -e pyjamalib
 ```
 or
 ```
 git clone https://github.com/tuliofalmeida/pyjama
-pip install -e pyjama
+pip install -e pyjamalib
 ```
 
-By calling `pip list` you should see `pyrat` now as an installed package:
+By calling `pip list` you should see `pyjamalib` now as an installed package:
 ```
-pyrat (0.x.x, /path/to/pyrat)
+pyrat (0.x.x, /path/to/pyjamalib)
 ```
 
 # Development Team:
 -------------------
 
 - [Tulio Almeida]
-## Advisors
 - [Abner Cardoso] 
 - [André Dantas]
+
 <!-- Links -->
 [Abner Cardoso]:https://github.com/abnr
 [Tulio Almeida]:https://github.com/tuliofalmeida
