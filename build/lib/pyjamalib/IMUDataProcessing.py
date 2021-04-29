@@ -2,14 +2,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import sys
-import csv
-import os
-import time
-import collections
-from time import sleep, time
-from math import pi, sin, cos, asin, acos, atan2, sqrt, atan
-from scipy import signal,stats
+import pyjamalib
+import scipy.signal,scipy.stats
 
 class IMUDataProcessing:
     """Integrates all functions to perform data 
@@ -46,6 +40,442 @@ class IMUDataProcessing:
         self.accF_Length = 13
         self.i = 0
 
+    def toDataframe(data,data_calib,filter=.04,freq=75,dt=1/75,alpha=.01,beta=.05,beta_mag=.9,beta_mag2=.01,conj=True):
+        """This function receives the data from an ESP32 
+        performs the data calibration and applies all filters. 
+        After all manipulations the results are saved to a
+        pandas datafarme.
+
+        Parameters
+        ----------
+        data: ndarray
+            Esp data returned by 'split_raw_data'.
+        data_calib: ndarray
+            Esp calibration data returned by 
+            'split_raw_data'.
+        filter: float
+            Low-pass filter intensity.
+        freq: int
+            Frequency of data acquisition.
+        dt: float
+            Sample time.
+        alpha: float
+            Determines the influence of the accelerometer 
+            on the formation of the angle by the complementary filter
+        beta: float
+            Factor to improve the effectiveness of 
+            integrating the accelerometer with gyroscope.
+            Must be determined between 0 and 1.
+        beta_mag: float
+           There is a tradeoff in the beta parameter 
+           between accuracy and response speed. Must
+           be determined according with the Gyroscope
+           error. Used for the first quaternion 
+           orientation. For MadgwickAHRS filte.
+        beta_mag2: float
+           There is a tradeoff in the beta parameter 
+           between accuracy and response speed. Must
+           be determined according with the Gyroscope
+           error. Used for the others orientations.
+           For MadgwickAHRS filte.
+        conj: bool
+            Determine if the quaternion resulted will be
+            conjugated or not.
+
+        Returns
+        -------
+        df: pandas dataframe
+            A pandas dataframe with the euler angles computed
+            using quaternions formulations.
+
+        See Also
+        --------
+        Developed by T.F Almeida in 25/03/2021
+
+        For more information see:
+        https://github.com/tuliofalmeida/pyjama    
+        """         
+        time,acc,gyr,mag= pyjamalib.DataHandler.get_imu_data(data)
+        time_calib,acc_calib,gyr_calib,mag_calib = pyjamalib.DataHandler.get_imu_data(data_calib)
+        time = np.arange(0, len(time)/freq, dt)
+        
+        end_calib = 5*freq
+        kalamn_gyr = gyr[0:end_calib]
+        
+        acc, gyr, mag = pyjamalib.DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
+        accf = IMUDataProcessing.low_pass_filter(acc,filter)
+        gyrf = IMUDataProcessing.low_pass_filter(gyr,filter)
+        magf = IMUDataProcessing.low_pass_filter(mag,filter)
+
+        df = pd.DataFrame({'Time':time[:]                                                               ,
+                        'Acc_X':acc[:,0]         ,'Acc_Y': acc[:,1]         ,'Acc_Z': acc[:,2]       ,
+                        'Gyr_X':gyr[:,0]         ,'Gyr_Y': gyr[:,1]         ,'Gyr_Z': gyr[:,2]       ,
+                        'Mag_X':mag[:,0]         ,'Mag_Y': mag[:,1]         ,'Mag_Z': mag[:,2]       ,
+                        'Acc_X_Filt':accf[:,0]   ,'Acc_Y_Filt':accf[:,1]    ,'Acc_Z_Filt': accf[:,2] ,
+                        'Gyr_X_Filt':gyrf[:,0]   ,'Gyr_Y_Filt':gyrf[:,1]    ,'Gyr_Z_Filt': gyrf[:,2] ,
+                        'Mag_X_Filt':magf[:,0]   ,'Mag_Y_Filt':magf[:,1]    ,'Mag_Z_Filt': magf[:,2] ,
+                        'Roll':acc[:,0]          ,'Pitch': acc[:,0]         ,'Yaw': acc[:,0]         ,
+                        'CF_Roll':acc[:,0]       ,'CF_Pitch':acc[:,0]       ,'CF_Yaw':acc[:,0]       ,
+                        'CF_GD_Roll':acc[:,0]    ,'CF_GD_Pitch':acc[:,0]    ,'CF_GD_Yaw':acc[:,0]    ,
+                        'CF_GN_Roll':acc[:,0]    ,'CF_GN_Pitch':acc[:,0]    ,'CF_GN_Yaw':acc[:,0]    ,       
+                        'Kalman_GD_Roll':acc[:,0],'Kalman_GD_Pitch':acc[:,0],'Kalman_GD_Yaw':acc[:,0],
+                        'Kalman_GN_Roll':acc[:,0],'Kalman_GN_Pitch':acc[:,0],'Kalman_GN_Yaw':acc[:,0],
+                        'Madgwick_Roll':acc[:,0] ,'Madgwick_Pitch':acc[:,0] ,'Madgwick_Yaw':acc[:,0]})
+        
+        acc_df   = pyjamalib.DataHandler.csvFloatMerge(df['Acc_X'],df['Acc_Y'],df['Acc_Z'])
+        gyr_df   = pyjamalib.DataHandler.csvFloatMerge(df['Gyr_X'],df['Gyr_Y'],df['Gyr_Z'])
+        mag_df   = pyjamalib.DataHandler.csvFloatMerge(df['Mag_X'],df['Mag_Y'],df['Mag_Z'])
+        acc_df_f = pyjamalib.DataHandler.csvFloatMerge(df['Acc_X_Filt'],df['Acc_Y_Filt'],df['Acc_Z_Filt'])
+        gyr_df_f = pyjamalib.DataHandler.csvFloatMerge(df['Gyr_X_Filt'],df['Gyr_Y_Filt'],df['Gyr_Z_Filt'])
+        mag_df_f = pyjamalib.DataHandler.csvFloatMerge(df['Mag_X_Filt'],df['Mag_Y_Filt'],df['Mag_Z_Filt'])
+
+        Roll, Pitch, Yaw = IMUDataProcessing.get_euler(q=[1,0,0,0],Acc=acc_df_f,Mag=mag_df_f,conj=conj)
+        CF    = IMUDataProcessing.complementaryFilter(Roll,Pitch,Yaw,gyr_df_f[:,0],gyr_df_f[:,1],gyr_df_f[:,2],alpha=.05,dt=dt)
+        CF_GD = IMUDataProcessing.ComplementaryFilterGD(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
+        CF_GN = IMUDataProcessing.ComplementaryFilterGN(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
+        Kalman_GD = IMUDataProcessing.KalmanGD(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
+        Kalman_GN = IMUDataProcessing.KalmanGN(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
+        Madgwick  = IMUDataProcessing.MadgwickAHRS(acc_df,gyr_df,mag_df,freq=freq,beta1=beta_mag,beta2=beta_mag2)
+
+        df['Roll'],df['Pitch'],df['Yaw'] = Roll, Pitch, Yaw
+        df['CF_Roll'],df['CF_Pitch'],df['CF_Yaw'] = CF[:,0],CF[:,1],CF[:,2]
+        df['CF_GD_Roll'],df['CF_GD_Pitch'],df['CF_GD_Yaw'] = CF_GD[:,0],CF_GD[:,1],CF_GD[:,2]
+        df['CF_GN_Roll'],df['CF_GN_Pitch'],df['CF_GN_Yaw'] = CF_GN[:,0],CF_GN[:,1],CF_GN[:,2]
+        df['Kalman_GD_Roll'],df['Kalman_GD_Pitch'],df['Kalman_GD_Yaw'] = Kalman_GD[:,0],Kalman_GD[:,1],Kalman_GD[:,2]
+        df['Kalman_GN_Roll'],df['Kalman_GN_Pitch'],df['Kalman_GN_Yaw'] = Kalman_GN[:,0],Kalman_GN[:,1],Kalman_GN[:,2]
+        df['Madgwick_Roll'],df['Madgwick_Pitch'],df['Madgwick_Yaw'] = Madgwick[:,0],Madgwick[:,1],Madgwick[:,2]
+
+        return df
+
+    def joint_measures(df_first_joint,df_second_joint,patternRoll=False,patternPitch=False,patternYaw=False,init=0,end=None,freq=75,threshold=None,cicle=2,bias=0,poly_degree=9,IC=1.96):
+        """This function is used to calculate the angle 
+        of a given joint. If the movement performed has 
+        a clear pattern, it is possible to extract it by 
+        determining at what angle of euler it happens 
+        (Flexion and extension - Roll, Adduction and 
+        Abduction - Pitch and Yaw Rotations), being possible 
+        to extract it in just one orientation. Example: 
+        in gait movement, the knee has small variations in 
+        rotations and adduction / abduction, so the pattern
+        may be present only in flexion / extension, the axis 
+        of primary movement of the joint. This function returns 
+        two data frames, one with an angle only in each filter 
+        and the other with statistical metrics.
+
+        Parameters
+        ----------
+        df_first_joint: pandas dataframe
+            Dataframe with ESP32 data positioned 
+            above the target joint returned by the 
+            'toDataFrame' function.
+        df_second_joint: pandas dataframe
+            Dataframe with ESP32 data positioned 
+            below the target joint returned by the 
+            'toDataFrame' function.
+        patternRoll: bool
+            If true it will calculate the roll pattern.
+            If there is no clear pattern and well 
+            determined by the threshold, the function 
+            will give an error.            
+        patternPitch: bool
+            If true it will calculate the pitch pattern.
+            If there is no clear pattern and well 
+            determined by the threshold, the function 
+            will give an error.            
+        patternYaw: bool
+            If true it will calculate the yaw pattern.
+            If there is no clear pattern and well 
+            determined by the threshold, the function 
+            will give an error.
+        init: int optional
+            Determines where the data will start 
+            to be read from. Used to cut an initial 
+            piece of data or read only a portion.
+        end: int optional
+            Determines where the data reading will 
+            end. Used to cut a final piece of data 
+            or read only a portion..
+        freq: float
+            Frequency of data acquisition.
+        threshold: float
+            Point at which the data moves between 
+            movements. Example: flexion and extension.
+        cicle: int
+            Number of points to be considered a pattern.
+        bias: int optional
+            Value to compensate the cicle adjust.
+        poly_degree: int
+            Degree of the polynomial to fit the data curve.
+        IC: float
+            Reference value for calculating the 95% 
+            confidence interval.
+
+        Returns
+        -------
+        df: pandas dataframe
+            A pandas dataframe with the joint angles in
+            each filter.
+        df_metrics: pandas dataframe
+            A panda dataframe containing the statistical 
+            metrics of the analyzed movement.
+        
+        See Also
+        --------
+        Developed by T.F Almeida in 25/03/2021
+
+        For more information see:
+        https://github.com/tuliofalmeida/pyjama    
+        """         
+        if end == None:
+            end = len(df_first_joint['Time'])
+        else:
+            end = end
+        df = pd.DataFrame({'Time':df_first_joint['Time'][init:end]                                                                                                                            ,
+                        'Flex/Ext':df_first_joint['Time'][init:end]          ,'Adu/Abd':df_first_joint['Time'][init:end]          ,'Int/Ext_Rot':df_first_joint['Time'][init:end]          ,
+                        'Flex/Ext_CF':df_first_joint['Time'][init:end]       ,'Adu/Abd_CF':df_first_joint['Time'][init:end]       ,'Int/Ext_Rot_CF':df_first_joint['Time'][init:end]       ,
+                        'Flex/Ext_CF_GD':df_first_joint['Time'][init:end]    ,'Adu/Abd_CF_GD':df_first_joint['Time'][init:end]    ,'Int/Ext_Rot_CF_GD':df_first_joint['Time'][init:end]    ,
+                        'Flex/Ext_CF_GN':df_first_joint['Time'][init:end]    ,'Adu/Abd_CF_GN':df_first_joint['Time'][init:end]    ,'Int/Ext_Rot_CF_GN':df_first_joint['Time'][init:end]    ,
+                        'Flex/Ext_Kalman_GD':df_first_joint['Time'][init:end],'Adu/Abd_Kalman_GD':df_first_joint['Time'][init:end],'Int/Ext_Rot_Kalman_GD':df_first_joint['Time'][init:end],
+                        'Flex/Ext_Kalman_GN':df_first_joint['Time'][init:end],'Adu/Abd_Kalman_GN':df_first_joint['Time'][init:end],'Int/Ext_Rot_Kalman_GN':df_first_joint['Time'][init:end],
+                        'Flex/Ext_Madgwick':df_first_joint['Time'][init:end] ,'Adu/Abd_Madgwick':df_first_joint['Time'][init:end] ,'Int/Ext_Rot_Madgwick':df_first_joint['Time'][init:end]       
+                        })
+
+        #Calcular o delay
+        
+        #Joint angle
+        column_name = df.columns.tolist()[1:]
+        row_names = df_first_joint.columns.tolist()[19:]
+        for ç in zip(column_name,row_names):            
+                df[ç[0]] = 180-(df_first_joint[ç[1]]+df_second_joint[ç[1]])
+                df[ç[0]] = df[ç[0]] - np.mean(df[ç[0]])
+                
+        thre = np.zeros((len(column_name),1))      
+        if type(threshold) == type(None):
+            for i in range(len(thre)):
+                  thre[i] = np.mean(df[column_name[i]])
+        else:
+            for i in range(len(thre)):
+                  thre[i] = threshold                 
+
+        index = []
+        Rom = []
+        Mean = []
+        Std = []
+        CI = []
+        Var = []
+        Min = []
+        Max = []
+        MinEst = []
+        MaxEst = []
+
+        if patternRoll:
+            rR,rawRrom = IMUDataProcessing.pattern_extraction(df['Flex/Ext'],df['Time'],threshold=thre[0], bias=bias, cicle=cicle);
+            rawRoll = IMUDataProcessing.patternIC(rR[:,0],rR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            rm_R = IMUDataProcessing.rom_mean(rawRrom)
+            CFR,CFRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_CF'],df['Time'],threshold=thre[3], bias=bias, cicle=cicle);
+            cfRoll=IMUDataProcessing.patternIC(CFR[:,0],CFR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cf_R = IMUDataProcessing.rom_mean(CFRrom)
+            CFGDR,CFGDRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_CF_GD'],df['Time'],threshold=thre[6], bias=bias, cicle=cicle);
+            cfgdRoll=IMUDataProcessing.patternIC(CFGDR[:,0],CFGDR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cfgd_R= IMUDataProcessing.rom_mean(CFGDRrom)
+            CFGNR,CFGNRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_CF_GN'],df['Time'],threshold=thre[9], bias=bias, cicle=cicle);
+            cfgnRoll=IMUDataProcessing.patternIC(CFGNR[:,0],CFGNR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cfgn_R = IMUDataProcessing.rom_mean(CFGNRrom)
+            KGDR,KGDRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_Kalman_GD'],df['Time'],threshold=thre[12], bias=bias, cicle=cicle);
+            kgdRoll=IMUDataProcessing.patternIC(KGDR[:,0],KGDR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            kgd_R = IMUDataProcessing.rom_mean(KGDRrom)
+            KGNR,KGNRRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_Kalman_GN'],df['Time'],threshold=thre[15], bias=bias, cicle=cicle);
+            kgnRoll=IMUDataProcessing.patternIC(KGNR[:,0],KGNR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            kgn_R = IMUDataProcessing.rom_mean(KGNRRrom)
+            MADR,MADRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_Madgwick'],df['Time'],threshold=thre[18], bias=bias, cicle=cicle);
+            madRoll=IMUDataProcessing.patternIC(MADR[:,0],MADR[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            mad_R = IMUDataProcessing.rom_mean(MADRrom)
+            romRawRoll = max(df['Flex/Ext'])-min(df['Flex/Ext'])
+            romRollCF = max(df['Flex/Ext_CF'])-min(df['Flex/Ext_CF'])
+            romRollCfGd = max(df['Flex/Ext_CF_GD'])-min(df['Flex/Ext_CF_GD'])
+            romRollCfGn = max(df['Flex/Ext_CF_GN'])-min(df['Flex/Ext_CF_GN'])
+            romRollKalmanGd = max(df['Flex/Ext_Kalman_GD'])-min(df['Flex/Ext_Kalman_GD'])
+            romRollKalmanGn = max(df['Flex/Ext_Kalman_GN'])-min(df['Flex/Ext_Kalman_GN'])
+            romRollMad = max(df['Flex/Ext_Madgwick'])-min(df['Flex/Ext_Madgwick'])
+            minRawRoll = min(df['Flex/Ext'])
+            minRollCF = min(df['Flex/Ext_CF'])
+            minRollCfGd = min(df['Flex/Ext_CF_GD'])
+            minRollCfGn = min(df['Flex/Ext_CF_GN'])
+            minRollKalmanGd = min(df['Flex/Ext_Kalman_GD'])
+            minRollKalmanGn = min(df['Flex/Ext_Kalman_GN'])
+            minRollMad = min(df['Flex/Ext_Madgwick'])
+            maxRawRoll = max(df['Flex/Ext'])
+            maxRollCF = max(df['Flex/Ext_CF'])
+            maxRollCfGd = max(df['Flex/Ext_CF_GD'])
+            maxRollCfGn = max(df['Flex/Ext_CF_GN'])
+            maxRollKalmanGd = max(df['Flex/Ext_Kalman_GD'])
+            maxRollKalmanGn = max(df['Flex/Ext_Kalman_GN'])
+            maxRollMad = max(df['Flex/Ext_Madgwick'])
+
+            indexRoll = ['Flex/Ext','Flex/Ext_CF','Flex/Ext_CF_GD','Flex/Ext_CF_GN','Flex/Ext_Kalman_GD','Flex/Ext_Kalman_GN','Flex/Ext_Madgwick']
+            meanRoll = [rm_R,cf_R,cfgd_R,cfgn_R,kgd_R,kgn_R,mad_R]
+            stdRoll = [rawRoll[1],cfRoll[1],cfgdRoll[1],cfgnRoll[1],kgdRoll[1],kgnRoll[1],madRoll[1]]
+            ciRoll = [rawRoll[0],cfRoll[0],cfgdRoll[0],cfgnRoll[0],kgdRoll[0],kgnRoll[0],madRoll[0]]
+            varRoll = [rawRoll[7],cfRoll[7],cfgdRoll[7],cfgnRoll[7],kgdRoll[7],kgnRoll[7],madRoll[7]]
+            minEstRoll = [rawRoll[4],cfRoll[4],cfgdRoll[4],cfgnRoll[4],kgdRoll[4],kgnRoll[4],madRoll[4]]
+            maxEstRoll = [rawRoll[5],cfRoll[5],cfgdRoll[5],cfgnRoll[5],kgdRoll[5],kgnRoll[5],madRoll[5]]
+            romRoll = [romRawRoll,romRollCF,romRollCfGd,romRollCfGn,romRollKalmanGd,romRollKalmanGn,romRollMad]
+            minRoll = [minRawRoll,minRollCF,minRollCfGd,minRollCfGn,minRollKalmanGd,minRollKalmanGn,minRollMad]
+            maxRoll = [maxRawRoll,maxRollCF,maxRollCfGd,maxRollCfGn,maxRollKalmanGd,maxRollKalmanGn,maxRollMad]
+            index = np.concatenate((index,indexRoll))
+            Rom = np.concatenate((Rom,romRoll))
+            Mean = np.concatenate((Mean,meanRoll))
+            Std = np.concatenate((Std,stdRoll))
+            CI = np.concatenate((CI,ciRoll))
+            Var = np.concatenate((Var,varRoll))
+            Min = np.concatenate((Min,minRoll))
+            Max = np.concatenate((Max,maxRoll))
+            MinEst = np.concatenate((MinEst,minEstRoll))
+            MaxEst = np.concatenate((MaxEst,maxEstRoll))
+
+        if patternPitch:    
+            rP,rawProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd'],df['Time'],threshold=thre[1], bias=bias, cicle=cicle);
+            rawPitch=IMUDataProcessing.patternIC(rP[:,0],rP[:,1],poly_degree=poly_degree,IC=IC,df=False);
+            rm_P = IMUDataProcessing.rom_mean(rawProm) 
+            CFP,CFProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_CF'],df['Time'],threshold=thre[4], bias=bias, cicle=cicle);
+            cfPitch=IMUDataProcessing.patternIC(CFP[:,0],CFP[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cf_P = IMUDataProcessing.rom_mean(CFProm)
+            CFGDP,CFGDProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_CF_GD'],df['Time'],threshold=thre[7], bias=bias, cicle=cicle);
+            cfgdPitch=IMUDataProcessing.patternIC(CFGDP[:,0],CFGDP[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cfgd_P = IMUDataProcessing.rom_mean(CFGDProm)
+            CFGNP,CFGNProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_CF_GN'],df['Time'],threshold=thre[10], bias=bias, cicle=cicle);
+            cfgnPitch=IMUDataProcessing.patternIC(CFGNP[:,0],CFGNP[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cfgn_P = IMUDataProcessing.rom_mean(CFGNProm)
+            KGDP,KGDProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_Kalman_GD'],df['Time'],threshold=thre[13], bias=bias, cicle=cicle);
+            kgdPitch=IMUDataProcessing.patternIC(KGDP[:,0],KGDP[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            kgd_P = IMUDataProcessing.rom_mean(KGDProm)
+            KGNP,KGNProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_Kalman_GN'],df['Time'],threshold=thre[16], bias=bias, cicle=cicle);
+            kgnPitch=IMUDataProcessing.patternIC(KGNP[:,0],KGNP[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            kgn_P = IMUDataProcessing.rom_mean(KGNProm)
+            MADP,MADProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_Madgwick'],df['Time'],threshold=thre[19], bias=bias, cicle=cicle);
+            madPitch=IMUDataProcessing.patternIC(MADP[:,0],MADP[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            mad_P = IMUDataProcessing.rom_mean(MADProm)
+            romRawPitch = max(df['Adu/Abd'])-min(df['Adu/Abd'])
+            romPitchCF = max(df['Adu/Abd_CF'])-min(df['Adu/Abd_CF'])
+            romPitchCfGd =max(df['Adu/Abd_CF_GD'])-min(df['Adu/Abd_CF_GD'])
+            romPitchCfGn = max(df['Adu/Abd_CF_GN'])-min(df['Adu/Abd_CF_GN'])
+            romPitchKalmanGd = max(df['Adu/Abd_Kalman_GD'])-min(df['Adu/Abd_Kalman_GD'])
+            romPitchKalmanGn = max(df['Adu/Abd_Kalman_GN'])-min(df['Adu/Abd_Kalman_GN'])
+            romPitchMad = max(df['Adu/Abd_Madgwick'])-min(df['Adu/Abd_Madgwick'])
+            minRawPitch = min(df['Adu/Abd'])
+            minPitchCF = min(df['Adu/Abd_CF'])
+            minPitchCfGd = min(df['Adu/Abd_CF_GD'])
+            minPitchCfGn = min(df['Adu/Abd_CF_GN'])
+            minPitchKalmanGd = min(df['Adu/Abd_Kalman_GD'])
+            minPitchKalmanGn = min(df['Adu/Abd_Kalman_GN'])
+            minPitchMad = max(df['Adu/Abd_Madgwick'])
+            maxRawPitch = max(df['Adu/Abd'])
+            maxPitchCF = max(df['Adu/Abd_CF'])
+            maxPitchCfGd = max(df['Adu/Abd_CF_GD'])
+            maxPitchCfGn = max(df['Adu/Abd_CF_GN'])
+            maxPitchKalmanGd = max(df['Adu/Abd_Kalman_GD'])
+            maxPitchKalmanGn = max(df['Adu/Abd_Kalman_GN'])
+            maxPitchMad = max(df['Adu/Abd_Madgwick'])
+
+            indexPitch = ['Adu/Abd','Adu/Abd_CF','Adu/Abd_CF_GD','Adu/Abd_CF_GN','Adu/Abd_Kalman_GD','Adu/Abd_Kalman_GN','Adu/Abd_Madgwick']
+            meanPitch = [rm_P,cf_P,cfgd_P,cfgn_P,kgd_P,kgn_P,mad_P]
+            stdPitch = [rawPitch[1],cfPitch[1],cfgdPitch[1],cfgnPitch[1],kgdPitch[1],kgnPitch[1],madPitch[1]]
+            ciPitch = [rawPitch[0],cfPitch[0],cfgdPitch[0],cfgnPitch[0],kgdPitch[0],kgnPitch[0],madPitch[0]]
+            varPitch = [rawPitch[7],cfPitch[7],cfgdPitch[7],cfgnPitch[7],kgdPitch[7],kgnPitch[7],madPitch[7]]
+            minEstPitch = [rawPitch[4],cfPitch[4],cfgdPitch[4],cfgnPitch[4],kgdPitch[4],kgnPitch[4],madPitch[4]]
+            maxEstPitch = [rawPitch[5],cfPitch[5],cfgdPitch[5],cfgnPitch[5],kgdPitch[5],kgnPitch[5],madPitch[5]]
+            romPitch = [romRawPitch,romPitchCF,romPitchCfGd,romPitchCfGn,romPitchKalmanGd,romPitchKalmanGn,romPitchMad]
+            minPitch = [minRawPitch,minPitchCF,minPitchCfGd,minPitchCfGn,minPitchKalmanGd,minPitchKalmanGn,minPitchMad]
+            maxPitch = [maxRawPitch,maxPitchCF,maxPitchCfGd,maxPitchCfGn,maxPitchKalmanGd,maxPitchKalmanGn,maxPitchMad]
+            index = np.concatenate((index,indexPitch ))
+            Rom = np.concatenate((Rom,romPitch ))
+            Mean = np.concatenate((Mean,meanPitch ))
+            Std = np.concatenate((Std,stdPitch ))
+            CI = np.concatenate((CI,ciPitch ))
+            Var = np.concatenate((Var,varPitch ))
+            Min = np.concatenate((Min,minPitch ))
+            Max = np.concatenate((Max,maxPitch ))
+            MinEst = np.concatenate((MinEst,minEstPitch ))
+            MaxEst = np.concatenate((MaxEst,maxEstPitch ))
+
+        if patternYaw:
+            rY,rawYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot'],df['Time'],threshold=thre[2], bias=bias, cicle=cicle);
+            rawYaw=IMUDataProcessing.patternIC(rY[:,0],rY[:,1],poly_degree=poly_degree,IC=IC,df=False);
+            rm_Y = IMUDataProcessing.rom_mean(rawYrom)            
+            CFY,CFYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_CF'],df['Time'],threshold=thre[5], bias=bias, cicle=cicle);
+            cfYaw=IMUDataProcessing.patternIC(CFY[:,0],CFY[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cf_Y = IMUDataProcessing.rom_mean(CFYrom)
+            CFGDY,CFGDYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_CF_GD'],df['Time'],thre[8], bias=bias, cicle=cicle);
+            cfgdYaw=IMUDataProcessing.patternIC(CFGDY[:,0],CFGDY[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cfgd_Y = IMUDataProcessing.rom_mean(CFGDYrom)   
+            CFGNY,CFGNYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_CF_GN'],df['Time'],threshold=thre[11], bias=bias, cicle=cicle);
+            cfgnYaw=IMUDataProcessing.patternIC(CFGNY[:,0],CFGNY[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            cfgn_Y = IMUDataProcessing.rom_mean(CFGNYrom)
+            KGDY,KGDYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_Kalman_GD'],df['Time'],threshold=thre[14], bias=bias, cicle=cicle);
+            kgdYaw=IMUDataProcessing.patternIC(KGDY[:,0],KGDY[:,1],poly_degree=poly_degree,IC=IC, df=False); 
+            kgd_Y = IMUDataProcessing.rom_mean(KGDYrom)
+            KGNY,KGNYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_Kalman_GN'],df['Time'],threshold=thre[17], bias=bias, cicle=cicle);
+            kgnYaw=IMUDataProcessing.patternIC(KGNY[:,0],KGNY[:,1],poly_degree=poly_degree,IC=IC, df=False); 
+            kgn_Y = IMUDataProcessing.rom_mean(KGNYrom)
+            MADY,MADYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_Madgwick'],df['Time'],threshold=thre[20], bias=bias, cicle=cicle);
+            madYaw=IMUDataProcessing.patternIC(MADY[:,0],MADY[:,1],poly_degree=poly_degree,IC=IC, df=False);
+            mad_Y = IMUDataProcessing.rom_mean(MADYrom)
+            romRawYaw = max(df['Int/Ext_Rot'])-min(df['Int/Ext_Rot'])
+            romYawCF = max(df['Int/Ext_Rot_CF'])-min(df['Int/Ext_Rot_CF'])
+            romYawCfGd =max(df['Int/Ext_Rot_CF_GD'])-min(df['Int/Ext_Rot_CF_GD'])
+            romYawCfGn = max(df['Int/Ext_Rot_CF_GN'])-min(df['Int/Ext_Rot_CF_GN'])
+            romYawKalmanGd = max(df['Int/Ext_Rot_Kalman_GD'])-min(df['Int/Ext_Rot_Kalman_GD'])
+            romYawKalmanGn = max(df['Int/Ext_Rot_Kalman_GN'])-min(df['Int/Ext_Rot_Kalman_GN'])
+            romYawMad = max(df['Int/Ext_Rot_Madgwick'])-min(df['Int/Ext_Rot_Madgwick'])
+            minRawYaw = min(df['Int/Ext_Rot'])
+            minYawCF = min(df['Int/Ext_Rot_CF'])
+            minYawCfGd = min(df['Int/Ext_Rot_CF_GD'])
+            minYawCfGn = min(df['Int/Ext_Rot_CF_GN'])
+            minYawKalmanGd = min(df['Int/Ext_Rot_Kalman_GD'])
+            minYawKalmanGn = min(df['Int/Ext_Rot_Kalman_GN'])
+            minYawMad = max(df['Int/Ext_Rot_Madgwick'])
+            maxRawYaw = max(df['Int/Ext_Rot'])
+            maxYawCF = max(df['Int/Ext_Rot_CF'])
+            maxYawCfGd = max(df['Int/Ext_Rot_CF_GD'])
+            maxYawCfGn = max(df['Int/Ext_Rot_CF_GN'])
+            maxYawKalmanGd = max(df['Int/Ext_Rot_Kalman_GD'])
+            maxYawKalmanGn = max(df['Int/Ext_Rot_Kalman_GN'])
+            maxYawMad = max(df['Int/Ext_Rot_Madgwick'])
+
+            indexYaw = ['Int/Ext_Rot','Int/Ext_Rot_CF','Int/Ext_Rot_CF_GD','Int/Ext_Rot_CF_GN','Int/Ext_Rot_Kalman_GD','Int/Ext_Rot_Kalman_GN','Int/Ext_Rot_Madgwick']
+            meanYaw = [rm_Y,cf_Y,cfgd_Y,cfgn_Y,kgd_Y,kgn_Y,mad_Y]
+            stdYaw = [rawYaw[1],cfYaw[1],cfgdYaw[1],cfgnYaw[1],kgdYaw[1],kgnYaw[1],madYaw[1]]
+            ciYaw = [rawYaw[0],cfYaw[0],cfgdYaw[0],cfgnYaw[0],kgdYaw[0],kgnYaw[0],madYaw[0]]
+            varYaw = [rawYaw[7],cfYaw[7],cfgdYaw[7],cfgnYaw[7],kgdYaw[7],kgnYaw[7],madYaw[7]]
+            minEstYaw = [rawYaw[4],cfYaw[4],cfgdYaw[4],cfgnYaw[4],kgdYaw[4],kgnYaw[4],madYaw[4]]
+            maxEstYaw = [rawYaw[5],cfYaw[5],cfgdYaw[5],cfgnYaw[5],kgdYaw[5],kgnYaw[5],madYaw[5]]
+            romYaw = [romRawYaw,romYawCF,romYawCfGd,romYawCfGn,romYawKalmanGd,romYawKalmanGn,romYawMad]
+            minYaw = [minRawYaw,minYawCF,minYawCfGd,minYawCfGn,minYawKalmanGd,minYawKalmanGn,minYawMad]
+            maxYaw = [maxRawYaw,maxYawCF,maxYawCfGd,maxYawCfGn,maxYawKalmanGd,maxYawKalmanGn,maxYawMad]
+            index = np.concatenate((index,indexYaw ))
+            Rom = np.concatenate((Rom,romYaw ))
+            Mean = np.concatenate((Mean,meanYaw ))
+            Std = np.concatenate((Std,stdYaw ))
+            CI = np.concatenate((CI,ciYaw ))
+            Var = np.concatenate((Var,varYaw ))
+            Min = np.concatenate((Min,minYaw ))
+            Max = np.concatenate((Max,maxYaw ))
+            MinEst = np.concatenate((MinEst,minEstYaw ))
+            MaxEst = np.concatenate((MaxEst,maxEstYaw ))
+
+        df_metrics = pd.DataFrame({'Movement':index,
+                        'Rom':Rom,
+                        'Mean':Mean,
+                        'Std':Std,
+                        'CI':CI,
+                        'Var':Var,
+                        'Min':Min,
+                        'Max':Max,
+                        'Min Est':MinEst,
+                        'Max Est':MaxEst})
+
+        return df ,df_metrics  
+     
     def get_roll(acc):
         """ Calculate the euler roll angle using the
         Accelerometer data.
@@ -65,7 +495,7 @@ class IMUDataProcessing:
 
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """
-        return atan2(-acc[0],sqrt((acc[1]*acc[1]) + (acc[2] * acc[2])))
+        return math.atan2(-acc[0],math.sqrt((acc[1]*acc[1]) + (acc[2] * acc[2])))
 
     def get_pitch(acc):
         """ Calculate the euler pitch angle using the
@@ -86,7 +516,7 @@ class IMUDataProcessing:
 
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """
-        return atan2(acc[1],sqrt((acc[0] * acc[0]) + (acc[2] * acc[2])))
+        return math.atan2(acc[1],math.sqrt((acc[0] * acc[0]) + (acc[2] * acc[2])))
 
     def get_yaw(roll,pitch):
         """ Calculate the euler yaw angle using the
@@ -111,9 +541,9 @@ class IMUDataProcessing:
 
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """
-        Yh = (mag[1] * cos(roll)) - (mag[2] * sin(roll))
-        Xh = (mag[0] * cos(pitch))+ (mag[1] * sin(roll)*sin(pitch)) + (mag[2] * cos(roll) * sin(pitch))	
-        return atan2(Yh, Xh)
+        Yh = (mag[1] * math.cos(roll)) - (mag[2] * math.pi(roll))
+        Xh = (mag[0] * math.cos(pitch))+ (mag[1] * math.sin(roll)*math.sin(pitch)) + (mag[2] * math.cos(roll) * math.sin(pitch))	
+        return math.atan2(Yh, Xh)
 
     def get_euler(q,Acc,Mag,conj=True):
         """ Calculate the euler yaw angle using the
@@ -183,10 +613,10 @@ class IMUDataProcessing:
         http://www.x-io.co.uk/node/8#quaternions
         https://github.com/tuliofalmeida/pyjama
         """
-        q0 = cos(np.divide(angle,2))
-        q1 = -axis[0]*sin(np.divide(angle,2))
-        q2 = -axis[1]*sin(np.divide(angle,2))
-        q3 = -axis[2]*sin(np.divide(angle,2))
+        q0 = math.cos(np.divide(angle,2))
+        q1 = -axis[0]*math.sin(np.divide(angle,2))
+        q2 = -axis[1]*math.sin(np.divide(angle,2))
+        q3 = -axis[2]*math.sin(np.divide(angle,2))
         q = [q0,q1,q2,q3]
 
         return q
@@ -221,9 +651,9 @@ class IMUDataProcessing:
         kx = axis[0]
         ky = axis[1]
         kz = axis[2]
-        cT = cos(angle)
-        sT = sin(angle)
-        vT = 1 - cos(angle)
+        cT = math.cos(angle)
+        sT = math.sin(angle)
+        vT = 1 - math.cos(angle)
 
         R = np.zeros((3,3))   
 
@@ -271,17 +701,17 @@ class IMUDataProcessing:
         """
         R = np.zeros((3,3))
 
-        R[0,0] = cos(psi) * cos(theta) 
-        R[0,1] = -sin(psi) * cos(phi) + cos(psi) * sin(theta) * sin(phi) 
-        R[0,2] = sin(psi) * sin(phi) + cos(psi) * sin(theta) * cos(phi)
+        R[0,0] = math.cos(psi) * math.cos(theta) 
+        R[0,1] = -math.sin(psi) * math.cos(phi) + math.cos(psi) * math.sin(theta) * math.sin(phi) 
+        R[0,2] = math.sin(psi) * math.sin(phi) + math.cos(psi) * math.sin(theta) * math.cos(phi)
 
-        R[1,0] = sin(psi) * cos(theta)
-        R[1,1] = cos(psi) * cos(phi) + sin(psi) * sin(theta) * sin(phi)
-        R[1,2] = -cos(psi) * sin(phi) + sin(psi) * sin(theta) * cos(phi)
+        R[1,0] = math.sin(psi) * math.cos(theta)
+        R[1,1] = math.cos(psi) * math.cos(phi) + math.sin(psi) * math.sin(theta) * math.sin(phi)
+        R[1,2] = -math.cos(psi) * math.sin(phi) + math.sin(psi) * math.sin(theta) * math.cos(phi)
 
-        R[2,0] = -sin(theta)
-        R[2,1] = cos(theta) * sin(phi)
-        R[2,2] = cos(theta) * cos(phi)
+        R[2,0] = -math.sin(theta)
+        R[2,1] = math.cos(theta) * math.sin(phi)
+        R[2,2] = math.cos(theta) * math.cos(phi)
 
         return R
 
@@ -325,9 +755,9 @@ class IMUDataProcessing:
             R[2,1] = 2*(q[0][2]*q[0][3]-q[0][0]*q[0][1])
             R[2,2] = 2*q[0][0]**2-1+2*q[0][3]**2
 
-        phi = atan2(R[2,1], R[2,2])
-        theta = -atan(R[2,0]/sqrt(1-R[2,0]**2))
-        psi = atan2(R[1,0], R[0,0] )
+        phi = math.atan2(R[2,1], R[2,2])
+        theta = -math.atan(R[2,0]/math.sqrt(1-R[2,0]**2))
+        psi = math.atan2(R[1,0], R[0,0] )
 
         euler = [phi,theta,psi]
 
@@ -472,9 +902,9 @@ class IMUDataProcessing:
         if np.size(np.asarray(R).shape) == 2:
             row, col = np.asarray(R).shape
             numR = 1
-            phi = atan2(R[2,1], R[2,2] )
-            theta = -atan(R[2,0]/sqrt(1-R[2,0]**2))
-            psi = atan2(R[1,0], R[0,0] )
+            phi = math.atan2(R[2,1], R[2,2] )
+            theta = -math.atan(R[2,0]/math.sqrt(1-R[2,0]**2))
+            psi = math.atan2(R[1,0], R[0,0] )
 
             euler = [phi,theta,psi]
 
@@ -486,9 +916,9 @@ class IMUDataProcessing:
             theta = []
             psi =[]
             for i in range(numR):
-                phi.append(atan2(R[2,1,i], R[2,2,i]))
-                theta.append(-atan(R[2,0,i]/sqrt(1-R[2,0,i]**2)))
-                psi.append(atan2(R[1,0,i], R[0,0,i]))
+                phi.append(math.atan2(R[2,1,i], R[2,2,i]))
+                theta.append(-math.atan(R[2,0,i]/math.sqrt(1-R[2,0,i]**2)))
+                psi.append(math.atan2(R[1,0,i], R[0,0,i]))
 
             euler = [np.asarray(phi),np.asarray(theta),np.asarray(psi)] 
 
@@ -740,7 +1170,7 @@ class IMUDataProcessing:
             MAG = np.asarray([0,m[0],m[1],m[2]])
             hTemp = IMUDataProcessing.QuaternionProduct(q,MAG)
             h = IMUDataProcessing.QuaternionProduct(hTemp,q_coniug)
-            bMagn = np.asarray([sqrt(h[1]**2+h[2]**2), 0, h[3]]).T
+            bMagn = np.asarray([math.sqrt(h[1]**2+h[2]**2), 0, h[3]]).T
             bMagn = bMagn/np.linalg.norm(bMagn)
             # End magnetometer compensation
             
@@ -791,9 +1221,9 @@ class IMUDataProcessing:
         q2=q[2]
         q3=q[3]
         
-        AnglesX = atan2(2*(q2*q3)-2*q0*q1,2*q0**2+2*q3**2-1)*180/pi
-        AnglesY = -asin(2*q1*q3+2*q0*q2)*180/pi
-        AnglesZ = atan2(2*q1*q2-2*q0*q3,2*q0**2+2*q1**2-1)*180/pi
+        AnglesX = math.atan2(2*(q2*q3)-2*q0*q1,2*q0**2+2*q3**2-1)*180/math.pi
+        AnglesY = -math.asin(2*q1*q3+2*q0*q2)*180/math.pi
+        AnglesZ = math.atan2(2*q1*q2-2*q0*q3,2*q0**2+2*q1**2-1)*180/math.pi
 
         Angles = np.asarray([AnglesX,AnglesY,AnglesZ])
 
@@ -824,14 +1254,14 @@ class IMUDataProcessing:
         https://github.com/tuliofalmeida/pyjama
         """       
         q = np.zeros((4,1))
-        x = Angles[:,0]*pi/180
-        y = Angles[:,1]*pi/180
-        z = Angles[:,2]*pi/180
+        x = Angles[:,0]*math.pi/180
+        y = Angles[:,1]*math.pi/180
+        z = Angles[:,2]*math.pi/180
 
-        q[0] = cos(x/2)*cos(y/2)*cos(z/2)+sin(x/2)*sin(y/2)*sin(z/2)
-        q[1] = sin(x/2)*cos(y/2)*cos(z/2)-cos(x/2)*sin(y/2)*sin(z/2)
-        q[2] = cos(x/2)*sin(y/2)*cos(z/2)+sin(x/2)*cos(y/2)*sin(z/2)
-        q[3] = cos(x/2)*cos(y/2)*sin(z/2)-sin(x/2)*sin(y/2)*cos(z/2)
+        q[0] = math.cos(x/2)*math.cos(y/2)*math.cos(z/2)+math.sin(x/2)*math.sin(y/2)*math.sin(z/2)
+        q[1] = math.sin(x/2)*math.cos(y/2)*math.cos(z/2)-math.cos(x/2)*math.sin(y/2)*math.sin(z/2)
+        q[2] = math.cos(x/2)*math.sin(y/2)*math.cos(z/2)+math.sin(x/2)*math.cos(y/2)*math.sin(z/2)
+        q[3] = math.cos(x/2)*math.cos(y/2)*math.sin(z/2)-math.sin(x/2)*math.sin(y/2)*math.cos(z/2)
 
         return np.asarray(q)
 
@@ -894,7 +1324,7 @@ class IMUDataProcessing:
             hTemp = IMUDataProcessing.QuaternionProduct(q,M)
             h = IMUDataProcessing.QuaternionProduct(hTemp,q_coniug)
 
-            b = [sqrt(h[1]**2 + h[2]**2),0,h[3]]
+            b = [math.sqrt(h[1]**2 + h[2]**2),0,h[3]]
             b = b/np.linalg.norm(b)
 
             fb1 = 2*b[0]*(0.5-q3**2-q4**2)+2*b[2]*(q2*q4-q1*q3)-m[0]
@@ -1001,7 +1431,7 @@ class IMUDataProcessing:
         """
         nyq = 0.5 * freq
         normal_cutoff = cutoff / nyq
-        b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
+        b, a = scipy.signal.butter(order, normal_cutoff, btype='low', analog=False)
         return b, a
 
     def butter_lowpass_filter(cutoff = .1, freq = 75, order=2):
@@ -1029,11 +1459,11 @@ class IMUDataProcessing:
         https://github.com/tuliofalmeida/pyjama
         """
         b, a = butter_lowpass(cutoff, freq, order=order)
-        y = signal.lfilter(b, a, data)
+        y = scipy.signal.lfilter(b, a, data)
         return y
 
     def low_pass_filter(IN, par = 0.1):
-        """Low-pass butter filter
+        """Low-pass filter
 
         Parameters
         ----------
@@ -1346,7 +1776,7 @@ class IMUDataProcessing:
 
         return np.asarray(Angles).T
 
-    def KalmanGD(acc,gyr,mag,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
+    def KalmanGD(acc,gyr,mag,gyrcalib = None,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
         """Filters data offline. Kalman filter
         using the Gradient Descendent optimizer. 
 
@@ -1358,6 +1788,9 @@ class IMUDataProcessing:
            Gyroscope array with XYZ in rad/s.
         mag: ndarray 
            Magnetometer array with XYZ in mG.
+        gyrcalib: ndarray
+           Frist 5 seconds of static gyroscopedata 
+           data in a array with XYZ in rad/s. 
         dt: float
            Sample time.
         R_In: tuple
@@ -1385,10 +1818,14 @@ class IMUDataProcessing:
         https://github.com/tuliofalmeida/pyjama
         """         
         acqSize = acc.shape[0]
-
+                
         # Variance 
-        _,varG = IMUDataProcessing.varianceEstimation(gyr)
-        var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T
+        if type(gyrcalib) == type(None):
+            _,varG = IMUDataProcessing.varianceEstimation(gyr)
+            var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T
+        else:
+            _,varG = IMUDataProcessing.varianceEstimation(gyrcalib)
+            var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T            
 
         # Acquisition variables
         mu       = np.zeros((1,acqSize))
@@ -1483,7 +1920,7 @@ class IMUDataProcessing:
 
         return np.asarray(Angles).T
 
-    def KalmanGN(acc,gyr,mag,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
+    def KalmanGN(acc,gyr,mag,gyrcalib=None,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
         """Filters data offline. Kalman filter
         using the Gauss-Newton optimizer. 
 
@@ -1495,6 +1932,9 @@ class IMUDataProcessing:
            Gyroscope array with XYZ in rad/s.
         mag: ndarray 
            Magnetometer array with XYZ in mG.
+        gyrcalib: ndarray
+           Frist 5 seconds of static gyroscopedata 
+           data in a array with XYZ in rad/s.        
         dt: float
            Sample time.
         R_In: tuple
@@ -1524,8 +1964,12 @@ class IMUDataProcessing:
         acqSize = acc.shape[0]
 
         # Variance 
-        _,varG = IMUDataProcessing.varianceEstimation(gyr)
-        var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T
+        if type(gyrcalib) == type(None):
+            _,varG = IMUDataProcessing.varianceEstimation(gyr)
+            var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T
+        else:
+            _,varG = IMUDataProcessing.varianceEstimation(gyrcalib)
+            var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T 
 
         # Acquisition variables
         AccF     = np.zeros((3,acqSize))
@@ -1813,7 +2257,7 @@ class IMUDataProcessing:
             q = madgFilter.Madgwick9DOFUpdate(gyr[i],acc[i],mag[i], 1/freq, Beta = beta2)
             madgwick.append(IMUDataProcessing.quatern2euler(IMUDataProcessing.quaternConj(q[0])))
 
-        return np.asarray(madgwick)*180/pi
+        return np.asarray(madgwick)*180/math.pi
 
     def rsquared(x, y):
         """ Calculate the r² for two datas
@@ -1836,7 +2280,7 @@ class IMUDataProcessing:
 
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """
-        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x, y)
         return r_value**2
 
     def varianceEstimation(data):
@@ -1914,12 +2358,12 @@ class IMUDataProcessing:
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """ 
         if df == True:
-            jointAngle = csvToFloat(jointAngle)
-            time = csvToFloat(time)
+            jointAngle = pyjamalib.DataHandler.csvToFloat(jointAngle)
+            time = pyjamalib.DataHandler.csvToFloat(time)
         if plot == True:
             plt.figure(figsize=(12,9))
         
-        diff = low_pass_filter((jointAngle[1:] - jointAngle[:-1]))
+        diff = IMUDataProcessing.low_pass_filter((jointAngle[1:] - jointAngle[:-1]))
         zero_crossings = np.where(np.diff(np.signbit(jointAngle-threshold)))[0]
         Time_Data_Array = []
         mCicloqtd = cicle
@@ -1993,8 +2437,8 @@ class IMUDataProcessing:
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """             
         if df == True:
-            all_x = csvToFloat(all_x)
-            all_y = csvToFloat(all_y)
+            all_x = pyjamalib.DataHandler.csvToFloat(all_x)
+            all_y = pyjamalib.DataHandler.csvToFloat(all_y)
 
         coef = np.polyfit(all_x,all_y,poly_degree)
         yest = np.polyval(coef,all_x)
@@ -2002,7 +2446,7 @@ class IMUDataProcessing:
         stdev = np.sqrt(sum((yest - all_y)**2)/(len(all_y)-2))
         confidence_interval = IC*stdev
 
-        r2 = rsquared(all_y,yest)
+        r2 = IMUDataProcessing.rsquared(all_y,yest)
 
         yup = []
         ydown = []
@@ -2061,7 +2505,7 @@ class IMUDataProcessing:
 
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """ 
-        crossings = np.where(np.diff(np.signbit(data-treshold)))[0]
+        crossings = np.where(np.diff(np.signbit(data-threshold)))[0]
         plt.figure(figsize=(12,9))
         plt.plot(time,data)
         for i in range(len(crossings)):
@@ -2101,7 +2545,7 @@ class IMUDataProcessing:
         https://github.com/tuliofalmeida/pyjama  """ 
         rom = []
         if df == True:
-            data = DataHandler.csvToFloat(data)
+            data = pyjamalib.DataHandler.csvToFloat(data)
             rom = (max(data) - min(data))
             
             metrics = rom,np.mean(data),np.std(data),np.var(data),len(data)
