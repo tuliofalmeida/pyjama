@@ -37,6 +37,7 @@ pyrat (0.x.x, /path/to/pyjamalib)
 ```
 
 # Examples
+-----------
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb) Lokomat Example - Example of using the library using data extracted using JAMA.   
 
