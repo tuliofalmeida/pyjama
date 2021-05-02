@@ -36,6 +36,11 @@ By calling `pip list` you should see `pyjamalib` now as an installed package:
 pyrat (0.x.x, /path/to/pyjamalib)
 ```
 
+# Examples
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/googlecolab/colabtools/blob/master/notebooks/colab-github-demo.ipynb)
+
+
 # Development Team:
 -------------------
 
