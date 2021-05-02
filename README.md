@@ -38,7 +38,7 @@ pyrat (0.x.x, /path/to/pyjamalib)
 
 # Examples
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb)
 
 
 # Development Team:
