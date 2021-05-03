@@ -1,6 +1,6 @@
 # PyJama - Python for Joint Angle Measurement Acquisition
 ---------------------------------------------------------
-PyJama is a friendly python library for analyzing human kinematics data. Aimed at analyzing data from IMU's, MIMU's, data from optical devices and in the future tracking data from deeplearning models.
+PyJama is a friendly python library for analyzing human kinematics data. Aimed at analyzing data from IMU's, MIMU's, data from optical devices and in the future tracking data from deeplearning models. The PyJAMA library was designed based on the [JAMA device](https://github.com/tuliofalmeida/jama)
 
 # Installation
 --------------
