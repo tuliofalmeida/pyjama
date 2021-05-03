@@ -5,7 +5,7 @@ import pandas as pd
 import pyjamalib
 import scipy.signal,scipy.stats
 
-class IMUDataProcessing:
+class DataProcessing:
     """Integrates all functions to perform data 
     processing to calculate the joint angle.
 
@@ -18,7 +18,8 @@ class IMUDataProcessing:
     """
     def __init__(self, Quaternion = [1,0,0,0]): 
         """Pass the necessary variables to run the class.
-         Parameters
+        
+        Parameters
         ----------
         Quaternion:  tuple optional
             Initial positioning in quaternion.
@@ -103,9 +104,9 @@ class IMUDataProcessing:
         kalamn_gyr = gyr[0:end_calib]
         
         acc, gyr, mag = pyjamalib.DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
-        accf = IMUDataProcessing.low_pass_filter(acc,filter)
-        gyrf = IMUDataProcessing.low_pass_filter(gyr,filter)
-        magf = IMUDataProcessing.low_pass_filter(mag,filter)
+        accf = DataProcessing.low_pass_filter(acc,filter)
+        gyrf = DataProcessing.low_pass_filter(gyr,filter)
+        magf = DataProcessing.low_pass_filter(mag,filter)
 
         df = pd.DataFrame({'Time':time[:]                                                               ,
                         'Acc_X':acc[:,0]         ,'Acc_Y': acc[:,1]         ,'Acc_Z': acc[:,2]       ,
@@ -129,13 +130,13 @@ class IMUDataProcessing:
         gyr_df_f = pyjamalib.DataHandler.csvFloatMerge(df['Gyr_X_Filt'],df['Gyr_Y_Filt'],df['Gyr_Z_Filt'])
         mag_df_f = pyjamalib.DataHandler.csvFloatMerge(df['Mag_X_Filt'],df['Mag_Y_Filt'],df['Mag_Z_Filt'])
 
-        Roll, Pitch, Yaw = IMUDataProcessing.get_euler(q=[1,0,0,0],Acc=acc_df_f,Mag=mag_df_f,conj=conj)
-        CF    = IMUDataProcessing.complementaryFilter(Roll,Pitch,Yaw,gyr_df_f[:,0],gyr_df_f[:,1],gyr_df_f[:,2],alpha=.05,dt=dt)
-        CF_GD = IMUDataProcessing.ComplementaryFilterGD(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
-        CF_GN = IMUDataProcessing.ComplementaryFilterGN(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
-        Kalman_GD = IMUDataProcessing.KalmanGD(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
-        Kalman_GN = IMUDataProcessing.KalmanGN(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
-        Madgwick  = IMUDataProcessing.MadgwickAHRS(acc_df,gyr_df,mag_df,freq=freq,beta1=beta_mag,beta2=beta_mag2)
+        Roll, Pitch, Yaw = DataProcessing.get_euler(q=[1,0,0,0],Acc=acc_df_f,Mag=mag_df_f,conj=conj)
+        CF    = DataProcessing.complementaryFilter(Roll,Pitch,Yaw,gyr_df_f[:,0],gyr_df_f[:,1],gyr_df_f[:,2],alpha=.05,dt=dt)
+        CF_GD = DataProcessing.ComplementaryFilterGD(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
+        CF_GN = DataProcessing.ComplementaryFilterGN(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
+        Kalman_GD = DataProcessing.KalmanGD(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
+        Kalman_GN = DataProcessing.KalmanGN(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
+        Madgwick  = DataProcessing.MadgwickAHRS(acc_df,gyr_df,mag_df,freq=freq,beta1=beta_mag,beta2=beta_mag2)
 
         df['Roll'],df['Pitch'],df['Yaw'] = Roll, Pitch, Yaw
         df['CF_Roll'],df['CF_Pitch'],df['CF_Yaw'] = CF[:,0],CF[:,1],CF[:,2]
@@ -147,7 +148,7 @@ class IMUDataProcessing:
 
         return df
 
-    def joint_measures(df_first_joint,df_second_joint,patternRoll=False,patternPitch=False,patternYaw=False,init=0,end=None,freq=75,threshold=None,cicle=2,bias=0,poly_degree=9,IC=1.96):
+    def joint_measures(df_first_joint,df_second_joint,patternRoll=False,patternPitch=False,patternYaw=False,init=0,end=None,freq=75,threshold=None,cycle=2,bias=0,poly_degree=9,CI=1.96):
         """This function is used to calculate the angle 
         of a given joint. If the movement performed has 
         a clear pattern, it is possible to extract it by 
@@ -200,13 +201,13 @@ class IMUDataProcessing:
         threshold: float
             Point at which the data moves between 
             movements. Example: flexion and extension.
-        cicle: int
+        cycle: int
             Number of points to be considered a pattern.
         bias: int optional
-            Value to compensate the cicle adjust.
+            Value to compensate the cycle adjust.
         poly_degree: int
             Degree of the polynomial to fit the data curve.
-        IC: float
+        CI: float
             Reference value for calculating the 95% 
             confidence interval.
 
@@ -247,7 +248,8 @@ class IMUDataProcessing:
         row_names = df_first_joint.columns.tolist()[19:]
         for ç in zip(column_name,row_names):            
                 df[ç[0]] = 180-(df_first_joint[ç[1]]+df_second_joint[ç[1]])
-                df[ç[0]] = df[ç[0]] - np.mean(df[ç[0]])
+                df[ç[0]] = (df[ç[0]] + abs(min(df[ç[0]])))*-1
+                df[ç[0]] = df[ç[0]] + abs(min(df[ç[0]]))
                 
         thre = np.zeros((len(column_name),1))      
         if type(threshold) == type(None):
@@ -256,12 +258,12 @@ class IMUDataProcessing:
         else:
             for i in range(len(thre)):
                   thre[i] = threshold                 
-
+                  
         index = []
         Rom = []
         Mean = []
         Std = []
-        CI = []
+        CIlist = []
         Var = []
         Min = []
         Max = []
@@ -269,27 +271,27 @@ class IMUDataProcessing:
         MaxEst = []
 
         if patternRoll:
-            rR,rawRrom = IMUDataProcessing.pattern_extraction(df['Flex/Ext'],df['Time'],threshold=thre[0], bias=bias, cicle=cicle);
-            rawRoll = IMUDataProcessing.patternIC(rR[:,0],rR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            rm_R = IMUDataProcessing.rom_mean(rawRrom)
-            CFR,CFRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_CF'],df['Time'],threshold=thre[3], bias=bias, cicle=cicle);
-            cfRoll=IMUDataProcessing.patternIC(CFR[:,0],CFR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cf_R = IMUDataProcessing.rom_mean(CFRrom)
-            CFGDR,CFGDRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_CF_GD'],df['Time'],threshold=thre[6], bias=bias, cicle=cicle);
-            cfgdRoll=IMUDataProcessing.patternIC(CFGDR[:,0],CFGDR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cfgd_R= IMUDataProcessing.rom_mean(CFGDRrom)
-            CFGNR,CFGNRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_CF_GN'],df['Time'],threshold=thre[9], bias=bias, cicle=cicle);
-            cfgnRoll=IMUDataProcessing.patternIC(CFGNR[:,0],CFGNR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cfgn_R = IMUDataProcessing.rom_mean(CFGNRrom)
-            KGDR,KGDRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_Kalman_GD'],df['Time'],threshold=thre[12], bias=bias, cicle=cicle);
-            kgdRoll=IMUDataProcessing.patternIC(KGDR[:,0],KGDR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            kgd_R = IMUDataProcessing.rom_mean(KGDRrom)
-            KGNR,KGNRRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_Kalman_GN'],df['Time'],threshold=thre[15], bias=bias, cicle=cicle);
-            kgnRoll=IMUDataProcessing.patternIC(KGNR[:,0],KGNR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            kgn_R = IMUDataProcessing.rom_mean(KGNRRrom)
-            MADR,MADRrom=IMUDataProcessing.pattern_extraction(df['Flex/Ext_Madgwick'],df['Time'],threshold=thre[18], bias=bias, cicle=cicle);
-            madRoll=IMUDataProcessing.patternIC(MADR[:,0],MADR[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            mad_R = IMUDataProcessing.rom_mean(MADRrom)
+            rR,rawRrom = DataProcessing.pattern_extraction(df['Flex/Ext'],df['Time'],threshold=thre[0], bias=bias, cycle=cycle);
+            rawRoll = DataProcessing.patternCI(rR[:,0],rR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            rm_R = DataProcessing.rom_mean(rawRrom)
+            CFR,CFRrom=DataProcessing.pattern_extraction(df['Flex/Ext_CF'],df['Time'],threshold=thre[3], bias=bias, cycle=cycle);
+            cfRoll=DataProcessing.patternCI(CFR[:,0],CFR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cf_R = DataProcessing.rom_mean(CFRrom)
+            CFGDR,CFGDRrom=DataProcessing.pattern_extraction(df['Flex/Ext_CF_GD'],df['Time'],threshold=thre[6], bias=bias, cycle=cycle);
+            cfgdRoll=DataProcessing.patternCI(CFGDR[:,0],CFGDR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cfgd_R= DataProcessing.rom_mean(CFGDRrom)
+            CFGNR,CFGNRrom=DataProcessing.pattern_extraction(df['Flex/Ext_CF_GN'],df['Time'],threshold=thre[9], bias=bias, cycle=cycle);
+            cfgnRoll=DataProcessing.patternCI(CFGNR[:,0],CFGNR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cfgn_R = DataProcessing.rom_mean(CFGNRrom)
+            KGDR,KGDRrom=DataProcessing.pattern_extraction(df['Flex/Ext_Kalman_GD'],df['Time'],threshold=thre[12], bias=bias, cycle=cycle);
+            kgdRoll=DataProcessing.patternCI(KGDR[:,0],KGDR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            kgd_R = DataProcessing.rom_mean(KGDRrom)
+            KGNR,KGNRRrom=DataProcessing.pattern_extraction(df['Flex/Ext_Kalman_GN'],df['Time'],threshold=thre[15], bias=bias, cycle=cycle);
+            kgnRoll=DataProcessing.patternCI(KGNR[:,0],KGNR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            kgn_R = DataProcessing.rom_mean(KGNRRrom)
+            MADR,MADRrom=DataProcessing.pattern_extraction(df['Flex/Ext_Madgwick'],df['Time'],threshold=thre[18], bias=bias, cycle=cycle);
+            madRoll=DataProcessing.patternCI(MADR[:,0],MADR[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            mad_R = DataProcessing.rom_mean(MADRrom)
             romRawRoll = max(df['Flex/Ext'])-min(df['Flex/Ext'])
             romRollCF = max(df['Flex/Ext_CF'])-min(df['Flex/Ext_CF'])
             romRollCfGd = max(df['Flex/Ext_CF_GD'])-min(df['Flex/Ext_CF_GD'])
@@ -326,7 +328,7 @@ class IMUDataProcessing:
             Rom = np.concatenate((Rom,romRoll))
             Mean = np.concatenate((Mean,meanRoll))
             Std = np.concatenate((Std,stdRoll))
-            CI = np.concatenate((CI,ciRoll))
+            CIlist = np.concatenate((CIlist,ciRoll))
             Var = np.concatenate((Var,varRoll))
             Min = np.concatenate((Min,minRoll))
             Max = np.concatenate((Max,maxRoll))
@@ -334,27 +336,27 @@ class IMUDataProcessing:
             MaxEst = np.concatenate((MaxEst,maxEstRoll))
 
         if patternPitch:    
-            rP,rawProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd'],df['Time'],threshold=thre[1], bias=bias, cicle=cicle);
-            rawPitch=IMUDataProcessing.patternIC(rP[:,0],rP[:,1],poly_degree=poly_degree,IC=IC,df=False);
-            rm_P = IMUDataProcessing.rom_mean(rawProm) 
-            CFP,CFProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_CF'],df['Time'],threshold=thre[4], bias=bias, cicle=cicle);
-            cfPitch=IMUDataProcessing.patternIC(CFP[:,0],CFP[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cf_P = IMUDataProcessing.rom_mean(CFProm)
-            CFGDP,CFGDProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_CF_GD'],df['Time'],threshold=thre[7], bias=bias, cicle=cicle);
-            cfgdPitch=IMUDataProcessing.patternIC(CFGDP[:,0],CFGDP[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cfgd_P = IMUDataProcessing.rom_mean(CFGDProm)
-            CFGNP,CFGNProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_CF_GN'],df['Time'],threshold=thre[10], bias=bias, cicle=cicle);
-            cfgnPitch=IMUDataProcessing.patternIC(CFGNP[:,0],CFGNP[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cfgn_P = IMUDataProcessing.rom_mean(CFGNProm)
-            KGDP,KGDProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_Kalman_GD'],df['Time'],threshold=thre[13], bias=bias, cicle=cicle);
-            kgdPitch=IMUDataProcessing.patternIC(KGDP[:,0],KGDP[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            kgd_P = IMUDataProcessing.rom_mean(KGDProm)
-            KGNP,KGNProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_Kalman_GN'],df['Time'],threshold=thre[16], bias=bias, cicle=cicle);
-            kgnPitch=IMUDataProcessing.patternIC(KGNP[:,0],KGNP[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            kgn_P = IMUDataProcessing.rom_mean(KGNProm)
-            MADP,MADProm=IMUDataProcessing.pattern_extraction(df['Adu/Abd_Madgwick'],df['Time'],threshold=thre[19], bias=bias, cicle=cicle);
-            madPitch=IMUDataProcessing.patternIC(MADP[:,0],MADP[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            mad_P = IMUDataProcessing.rom_mean(MADProm)
+            rP,rawProm=DataProcessing.pattern_extraction(df['Adu/Abd'],df['Time'],threshold=thre[1], bias=bias, cycle=cycle);
+            rawPitch=DataProcessing.patternCI(rP[:,0],rP[:,1],poly_degree=poly_degree,CI=CI,df=False);
+            rm_P = DataProcessing.rom_mean(rawProm) 
+            CFP,CFProm=DataProcessing.pattern_extraction(df['Adu/Abd_CF'],df['Time'],threshold=thre[4], bias=bias, cycle=cycle);
+            cfPitch=DataProcessing.patternCI(CFP[:,0],CFP[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cf_P = DataProcessing.rom_mean(CFProm)
+            CFGDP,CFGDProm=DataProcessing.pattern_extraction(df['Adu/Abd_CF_GD'],df['Time'],threshold=thre[7], bias=bias, cycle=cycle);
+            cfgdPitch=DataProcessing.patternCI(CFGDP[:,0],CFGDP[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cfgd_P = DataProcessing.rom_mean(CFGDProm)
+            CFGNP,CFGNProm=DataProcessing.pattern_extraction(df['Adu/Abd_CF_GN'],df['Time'],threshold=thre[10], bias=bias, cycle=cycle);
+            cfgnPitch=DataProcessing.patternCI(CFGNP[:,0],CFGNP[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cfgn_P = DataProcessing.rom_mean(CFGNProm)
+            KGDP,KGDProm=DataProcessing.pattern_extraction(df['Adu/Abd_Kalman_GD'],df['Time'],threshold=thre[13], bias=bias, cycle=cycle);
+            kgdPitch=DataProcessing.patternCI(KGDP[:,0],KGDP[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            kgd_P = DataProcessing.rom_mean(KGDProm)
+            KGNP,KGNProm=DataProcessing.pattern_extraction(df['Adu/Abd_Kalman_GN'],df['Time'],threshold=thre[16], bias=bias, cycle=cycle);
+            kgnPitch=DataProcessing.patternCI(KGNP[:,0],KGNP[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            kgn_P = DataProcessing.rom_mean(KGNProm)
+            MADP,MADProm=DataProcessing.pattern_extraction(df['Adu/Abd_Madgwick'],df['Time'],threshold=thre[19], bias=bias, cycle=cycle);
+            madPitch=DataProcessing.patternCI(MADP[:,0],MADP[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            mad_P = DataProcessing.rom_mean(MADProm)
             romRawPitch = max(df['Adu/Abd'])-min(df['Adu/Abd'])
             romPitchCF = max(df['Adu/Abd_CF'])-min(df['Adu/Abd_CF'])
             romPitchCfGd =max(df['Adu/Abd_CF_GD'])-min(df['Adu/Abd_CF_GD'])
@@ -391,7 +393,7 @@ class IMUDataProcessing:
             Rom = np.concatenate((Rom,romPitch ))
             Mean = np.concatenate((Mean,meanPitch ))
             Std = np.concatenate((Std,stdPitch ))
-            CI = np.concatenate((CI,ciPitch ))
+            CIlist = np.concatenate((CIlist,ciPitch ))
             Var = np.concatenate((Var,varPitch ))
             Min = np.concatenate((Min,minPitch ))
             Max = np.concatenate((Max,maxPitch ))
@@ -399,27 +401,27 @@ class IMUDataProcessing:
             MaxEst = np.concatenate((MaxEst,maxEstPitch ))
 
         if patternYaw:
-            rY,rawYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot'],df['Time'],threshold=thre[2], bias=bias, cicle=cicle);
-            rawYaw=IMUDataProcessing.patternIC(rY[:,0],rY[:,1],poly_degree=poly_degree,IC=IC,df=False);
-            rm_Y = IMUDataProcessing.rom_mean(rawYrom)            
-            CFY,CFYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_CF'],df['Time'],threshold=thre[5], bias=bias, cicle=cicle);
-            cfYaw=IMUDataProcessing.patternIC(CFY[:,0],CFY[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cf_Y = IMUDataProcessing.rom_mean(CFYrom)
-            CFGDY,CFGDYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_CF_GD'],df['Time'],thre[8], bias=bias, cicle=cicle);
-            cfgdYaw=IMUDataProcessing.patternIC(CFGDY[:,0],CFGDY[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cfgd_Y = IMUDataProcessing.rom_mean(CFGDYrom)   
-            CFGNY,CFGNYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_CF_GN'],df['Time'],threshold=thre[11], bias=bias, cicle=cicle);
-            cfgnYaw=IMUDataProcessing.patternIC(CFGNY[:,0],CFGNY[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            cfgn_Y = IMUDataProcessing.rom_mean(CFGNYrom)
-            KGDY,KGDYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_Kalman_GD'],df['Time'],threshold=thre[14], bias=bias, cicle=cicle);
-            kgdYaw=IMUDataProcessing.patternIC(KGDY[:,0],KGDY[:,1],poly_degree=poly_degree,IC=IC, df=False); 
-            kgd_Y = IMUDataProcessing.rom_mean(KGDYrom)
-            KGNY,KGNYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_Kalman_GN'],df['Time'],threshold=thre[17], bias=bias, cicle=cicle);
-            kgnYaw=IMUDataProcessing.patternIC(KGNY[:,0],KGNY[:,1],poly_degree=poly_degree,IC=IC, df=False); 
-            kgn_Y = IMUDataProcessing.rom_mean(KGNYrom)
-            MADY,MADYrom=IMUDataProcessing.pattern_extraction(df['Int/Ext_Rot_Madgwick'],df['Time'],threshold=thre[20], bias=bias, cicle=cicle);
-            madYaw=IMUDataProcessing.patternIC(MADY[:,0],MADY[:,1],poly_degree=poly_degree,IC=IC, df=False);
-            mad_Y = IMUDataProcessing.rom_mean(MADYrom)
+            rY,rawYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot'],df['Time'],threshold=thre[2], bias=bias, cycle=cycle);
+            rawYaw=DataProcessing.patternCI(rY[:,0],rY[:,1],poly_degree=poly_degree,CI=CI,df=False);
+            rm_Y = DataProcessing.rom_mean(rawYrom)            
+            CFY,CFYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot_CF'],df['Time'],threshold=thre[5], bias=bias, cycle=cycle);
+            cfYaw=DataProcessing.patternCI(CFY[:,0],CFY[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cf_Y = DataProcessing.rom_mean(CFYrom)
+            CFGDY,CFGDYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot_CF_GD'],df['Time'],thre[8], bias=bias, cycle=cycle);
+            cfgdYaw=DataProcessing.patternCI(CFGDY[:,0],CFGDY[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cfgd_Y = DataProcessing.rom_mean(CFGDYrom)   
+            CFGNY,CFGNYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot_CF_GN'],df['Time'],threshold=thre[11], bias=bias, cycle=cycle);
+            cfgnYaw=DataProcessing.patternCI(CFGNY[:,0],CFGNY[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            cfgn_Y = DataProcessing.rom_mean(CFGNYrom)
+            KGDY,KGDYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot_Kalman_GD'],df['Time'],threshold=thre[14], bias=bias, cycle=cycle);
+            kgdYaw=DataProcessing.patternCI(KGDY[:,0],KGDY[:,1],poly_degree=poly_degree,CI=CI, df=False); 
+            kgd_Y = DataProcessing.rom_mean(KGDYrom)
+            KGNY,KGNYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot_Kalman_GN'],df['Time'],threshold=thre[17], bias=bias, cycle=cycle);
+            kgnYaw=DataProcessing.patternCI(KGNY[:,0],KGNY[:,1],poly_degree=poly_degree,CI=CI, df=False); 
+            kgn_Y = DataProcessing.rom_mean(KGNYrom)
+            MADY,MADYrom=DataProcessing.pattern_extraction(df['Int/Ext_Rot_Madgwick'],df['Time'],threshold=thre[20], bias=bias, cycle=cycle);
+            madYaw=DataProcessing.patternCI(MADY[:,0],MADY[:,1],poly_degree=poly_degree,CI=CI, df=False);
+            mad_Y = DataProcessing.rom_mean(MADYrom)
             romRawYaw = max(df['Int/Ext_Rot'])-min(df['Int/Ext_Rot'])
             romYawCF = max(df['Int/Ext_Rot_CF'])-min(df['Int/Ext_Rot_CF'])
             romYawCfGd =max(df['Int/Ext_Rot_CF_GD'])-min(df['Int/Ext_Rot_CF_GD'])
@@ -456,7 +458,7 @@ class IMUDataProcessing:
             Rom = np.concatenate((Rom,romYaw ))
             Mean = np.concatenate((Mean,meanYaw ))
             Std = np.concatenate((Std,stdYaw ))
-            CI = np.concatenate((CI,ciYaw ))
+            CIlist = np.concatenate((CIlist,ciYaw ))
             Var = np.concatenate((Var,varYaw ))
             Min = np.concatenate((Min,minYaw ))
             Max = np.concatenate((Max,maxYaw ))
@@ -467,7 +469,7 @@ class IMUDataProcessing:
                         'Rom':Rom,
                         'Mean':Mean,
                         'Std':Std,
-                        'CI':CI,
+                        'CI':CIlist,
                         'Var':Var,
                         'Min':Min,
                         'Max':Max,
@@ -475,6 +477,66 @@ class IMUDataProcessing:
                         'Max Est':MaxEst})
 
         return df ,df_metrics  
+     
+    def joint_rom(df):
+        """ Calculate the max range of motion (ROM) 
+        of a joint.
+
+        Parameters
+        ----------
+        df: data frame
+            The output from 'joint_measures'
+            functions.
+
+        Returns
+        -------
+        df_rom: data frame
+            Rom of joint
+        
+        See Also
+        --------
+        Developed by T.F Almeida in 25/03/2021
+
+        For more information see:
+        https://github.com/tuliofalmeida/pyjama"""
+        
+        romRawRoll = max(df['Flex/Ext'])-min(df['Flex/Ext'])
+        romRollCF = max(df['Flex/Ext_CF'])-min(df['Flex/Ext_CF'])
+        romRollCfGd = max(df['Flex/Ext_CF_GD'])-min(df['Flex/Ext_CF_GD'])
+        romRollCfGn = max(df['Flex/Ext_CF_GN'])-min(df['Flex/Ext_CF_GN'])
+        romRollKalmanGd = max(df['Flex/Ext_Kalman_GD'])-min(df['Flex/Ext_Kalman_GD'])
+        romRollKalmanGn = max(df['Flex/Ext_Kalman_GN'])-min(df['Flex/Ext_Kalman_GN'])
+        romRollMad = max(df['Flex/Ext_Madgwick'])-min(df['Flex/Ext_Madgwick']) 
+        
+        romRawPitch = max(df['Adu/Abd'])-min(df['Adu/Abd'])
+        romPitchCF = max(df['Adu/Abd_CF'])-min(df['Adu/Abd_CF'])
+        romPitchCfGd =max(df['Adu/Abd_CF_GD'])-min(df['Adu/Abd_CF_GD'])
+        romPitchCfGn = max(df['Adu/Abd_CF_GN'])-min(df['Adu/Abd_CF_GN'])
+        romPitchKalmanGd = max(df['Adu/Abd_Kalman_GD'])-min(df['Adu/Abd_Kalman_GD'])
+        romPitchKalmanGn = max(df['Adu/Abd_Kalman_GN'])-min(df['Adu/Abd_Kalman_GN'])
+        romPitchMad = max(df['Adu/Abd_Madgwick'])-min(df['Adu/Abd_Madgwick'])  
+        
+        romRawYaw = max(df['Int/Ext_Rot'])-min(df['Int/Ext_Rot'])
+        romYawCF = max(df['Int/Ext_Rot_CF'])-min(df['Int/Ext_Rot_CF'])
+        romYawCfGd =max(df['Int/Ext_Rot_CF_GD'])-min(df['Int/Ext_Rot_CF_GD'])
+        romYawCfGn = max(df['Int/Ext_Rot_CF_GN'])-min(df['Int/Ext_Rot_CF_GN'])
+        romYawKalmanGd = max(df['Int/Ext_Rot_Kalman_GD'])-min(df['Int/Ext_Rot_Kalman_GD'])
+        romYawKalmanGn = max(df['Int/Ext_Rot_Kalman_GN'])-min(df['Int/Ext_Rot_Kalman_GN'])
+        romYawMad = max(df['Int/Ext_Rot_Madgwick'])-min(df['Int/Ext_Rot_Madgwick'])
+        
+        row_names = df.columns.tolist()[1:]
+
+        columns = [romRawRoll     ,romRawPitch     ,romRawYaw,
+                   romRollCF      ,romPitchCF      ,romYawCF,
+                   romRollCfGd    ,romPitchCfGd    ,romYawCfGd,
+                   romRollCfGn    ,romPitchCfGn    ,romYawCfGn,
+                   romRollKalmanGd,romPitchKalmanGd,romYawKalmanGd,
+                   romRollKalmanGn,romPitchKalmanGn,romYawKalmanGn,
+                   romRollMad     ,romPitchMad     ,romYawMad]
+                  
+        df_rom = pd.DataFrame({'Angles':columns},row_names )
+        
+        return df_rom
      
     def get_roll(acc):
         """ Calculate the euler roll angle using the
@@ -573,11 +635,11 @@ class IMUDataProcessing:
         quat.append(np.asarray(q))
         
         for i in range(len(Acc)):
-            quat.append(IMUDataProcessing.GaussNewtonMethod(quat[i-1],Acc[i],Mag[i]))
+            quat.append(DataProcessing.GaussNewtonMethod(quat[i-1],Acc[i],Mag[i]))
             if conj == True:
-                euler.append(IMUDataProcessing.GetAnglesFromQuaternion(IMUDataProcessing.quaternConj(quat[i])))
+                euler.append(DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(quat[i])))
             else:
-                euler.append(IMUDataProcessing.GetAnglesFromQuaternion(quat[i]))
+                euler.append(DataProcessing.GetAnglesFromQuaternion(quat[i]))
 
         euler = np.asarray(euler)
         roll  = euler[:,0] #x
@@ -1168,15 +1230,15 @@ class IMUDataProcessing:
             m = Mag/np.linalg.norm(Mag)
             q_coniug = np.asarray([q[0],-q[1],-q[2],-q[3]])
             MAG = np.asarray([0,m[0],m[1],m[2]])
-            hTemp = IMUDataProcessing.QuaternionProduct(q,MAG)
-            h = IMUDataProcessing.QuaternionProduct(hTemp,q_coniug)
+            hTemp = DataProcessing.QuaternionProduct(q,MAG)
+            h = DataProcessing.QuaternionProduct(hTemp,q_coniug)
             bMagn = np.asarray([math.sqrt(h[1]**2+h[2]**2), 0, h[3]]).T
             bMagn = bMagn/np.linalg.norm(bMagn)
             # End magnetometer compensation
             
-            J_nk = IMUDataProcessing.ComputeJacobian(q,Acc,Mag)
+            J_nk = DataProcessing.ComputeJacobian(q,Acc,Mag)
 
-            M = IMUDataProcessing.ComputeM_Matrix(q)
+            M = DataProcessing.ComputeM_Matrix(q)
 
             y_e=np.concatenate((np.asarray([0, 0, 1]).T,bMagn), axis=0)
             y_b=np.concatenate((Acc,Mag), axis=0)
@@ -1321,8 +1383,8 @@ class IMUDataProcessing:
             q_coniug = [q[0],-q[1],-q[2],-q[3]]
 
             M = [0,m[0],m[1],m[2]]
-            hTemp = IMUDataProcessing.QuaternionProduct(q,M)
-            h = IMUDataProcessing.QuaternionProduct(hTemp,q_coniug)
+            hTemp = DataProcessing.QuaternionProduct(q,M)
+            h = DataProcessing.QuaternionProduct(hTemp,q_coniug)
 
             b = [math.sqrt(h[1]**2 + h[2]**2),0,h[3]]
             b = b/np.linalg.norm(b)
@@ -1579,7 +1641,7 @@ class IMUDataProcessing:
         """        
         AccF = acc/np.linalg.norm(acc)
         MagnF = mag/np.linalg.norm(mag)
-        qOsserv = IMUDataProcessing.GaussNewtonMethod(self.qFilt_1,AccF,MagnF)
+        qOsserv = DataProcessing.GaussNewtonMethod(self.qFilt_1,AccF,MagnF)
         qOsserv = beta*qOsserv/np.linalg.norm(qOsserv)
         if self.i <= (self.accF_Length+6):
             # Filtered values initialized with observed values
@@ -1588,8 +1650,8 @@ class IMUDataProcessing:
             qGyro = qOsserv
         else:
             # Complementary Filter
-            dq = 0.5*(IMUDataProcessing.QuaternionProduct(self.qFilt_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))
-            qGyro = self.qGyro_1 + 0.5*(IMUDataProcessing.QuaternionProduct(self.qGyro_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))*dt
+            dq = 0.5*(DataProcessing.QuaternionProduct(self.qFilt_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))
+            qGyro = self.qGyro_1 + 0.5*(DataProcessing.QuaternionProduct(self.qGyro_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))*dt
             qGyro = qGyro/np.linalg.norm(qGyro)
             qGyroFilt = self.qFilt_1+dq*dt
             qGyroFilt = qGyroFilt/np.linalg.norm(qGyroFilt)
@@ -1598,9 +1660,9 @@ class IMUDataProcessing:
             qFilt = qFilt/np.linalg.norm(qFilt)
 
         if conj == True:    
-            Angles = IMUDataProcessing.GetAnglesFromQuaternion(IMUDataProcessing.quaternConj(qFilt))
+            Angles = DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(qFilt))
         else:
-            Angles = IMUDataProcessing.GetAnglesFromQuaternion(qFilt)
+            Angles = DataProcessing.GetAnglesFromQuaternion(qFilt)
 
         self.qFilt_1 = qFilt
         self.qGyro_1 = qGyro
@@ -1642,7 +1704,7 @@ class IMUDataProcessing:
         https://github.com/danicomo/9dof-orientation-estimation
         https://github.com/tuliofalmeida/pyjama
         """ 
-        CF = IMUDataProcessing()
+        CF = DataProcessing()
         acqSize = acc.shape[0]
         Angles = np.zeros((3,acqSize))
 
@@ -1694,10 +1756,10 @@ class IMUDataProcessing:
         AccF = acc/np.linalg.norm(acc)
         MagnF = mag/np.linalg.norm(mag)
 
-        dq = 0.5*(IMUDataProcessing.QuaternionProduct(self.qFilt_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))
+        dq = 0.5*(DataProcessing.QuaternionProduct(self.qFilt_1,np.asarray([0,gyr[0],gyr[1],gyr[2]]).T))
         dqnorm = np.linalg.norm(dq)
         mu = 10*dqnorm*dt
-        qOsserv = IMUDataProcessing.GradientDescent(AccF,MagnF,self.qOsserv_1,mu)
+        qOsserv = DataProcessing.GradientDescent(AccF,MagnF,self.qOsserv_1,mu)
         qOsserv = beta*qOsserv/np.linalg.norm(qOsserv)
         
         if (self.i <= self.accF_Length+9):
@@ -1709,16 +1771,16 @@ class IMUDataProcessing:
 
             dqnorm = np.linalg.norm(dq)
             mu = 10*dqnorm*dt
-            qOsserv = IMUDataProcessing.GradientDescent(AccF,MagnF,self.qOsserv_1,mu)
+            qOsserv = DataProcessing.GradientDescent(AccF,MagnF,self.qOsserv_1,mu)
             qOsserv = beta*qOsserv/np.linalg.norm(qOsserv)
             
             qFilt = qGyroFilt*(1-alpha)+qOsserv*alpha
             qFilt = qFilt/np.linalg.norm(qFilt)
 
         if conj == True:    
-            Angles = IMUDataProcessing.GetAnglesFromQuaternion(IMUDataProcessing.quaternConj(qFilt))
+            Angles = DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(qFilt))
         else:
-            Angles = IMUDataProcessing.GetAnglesFromQuaternion(qFilt)
+            Angles = DataProcessing.GetAnglesFromQuaternion(qFilt)
 
         self.qFilt_1 = qFilt
         # self.qGyro_1 = qGyro
@@ -1765,7 +1827,7 @@ class IMUDataProcessing:
         https://github.com/danicomo/9dof-orientation-estimation
         https://github.com/tuliofalmeida/pyjama
         """ 
-        CF = IMUDataProcessing()
+        CF = DataProcessing()
         acqSize = acc.shape[0]
         Angles = np.zeros((3,acqSize))
 
@@ -1821,10 +1883,10 @@ class IMUDataProcessing:
                 
         # Variance 
         if type(gyrcalib) == type(None):
-            _,varG = IMUDataProcessing.varianceEstimation(gyr)
+            _,varG = DataProcessing.varianceEstimation(gyr)
             var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T
         else:
-            _,varG = IMUDataProcessing.varianceEstimation(gyrcalib)
+            _,varG = DataProcessing.varianceEstimation(gyrcalib)
             var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T            
 
         # Acquisition variables
@@ -1883,10 +1945,10 @@ class IMUDataProcessing:
             # Observation Computing
             # Gradient  step 
             G = np.asarray([0, GyroRate[0,i],GyroRate[1,i],GyroRate[0,i]]).T
-            dq[:,i] = beta*(IMUDataProcessing.QuaternionProduct(qUpdate[:,i-1],G))
+            dq[:,i] = beta*(DataProcessing.QuaternionProduct(qUpdate[:,i-1],G))
             dqnorm[:,i] = np.linalg.norm(dq[:,i])
             mu[0,i] = 10*dqnorm[0,i]*dt
-            qOsserv[:,i] = IMUDataProcessing.GradientDescent(AccF[:,i],MagnF[:,i],qOsserv[:,i-1],mu[0,i])
+            qOsserv[:,i] = DataProcessing.GradientDescent(AccF[:,i],MagnF[:,i],qOsserv[:,i-1],mu[0,i])
             qOsserv[:,i] = beta*qOsserv[:,i]/np.linalg.norm(qOsserv[:,i])
             # End Observation Computing
             
@@ -1910,12 +1972,12 @@ class IMUDataProcessing:
             qUpdate[:,i] = qUpdate[:,i]/np.linalg.norm(qUpdate[:,i])
             
             P_Update = (np.eye(4,4)-K*H)@P_Predicted
-            Angles[:,i] = IMUDataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
+            Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
 
             if conj == True:
-                Angles[:,i] = IMUDataProcessing.GetAnglesFromQuaternion(IMUDataProcessing.quaternConj(qUpdate[:,i]))
+                Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(qUpdate[:,i]))
             else:
-                Angles[:,i] = IMUDataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
+                Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
             i += 1
 
         return np.asarray(Angles).T
@@ -1965,10 +2027,10 @@ class IMUDataProcessing:
 
         # Variance 
         if type(gyrcalib) == type(None):
-            _,varG = IMUDataProcessing.varianceEstimation(gyr)
+            _,varG = DataProcessing.varianceEstimation(gyr)
             var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T
         else:
-            _,varG = IMUDataProcessing.varianceEstimation(gyrcalib)
+            _,varG = DataProcessing.varianceEstimation(gyrcalib)
             var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T 
 
         # Acquisition variables
@@ -2026,7 +2088,7 @@ class IMUDataProcessing:
             # Observation Computing
             # Gauss Newton step 
             
-            qOsserv[:,i] = IMUDataProcessing.GaussNewtonMethod(qOsserv[:,i-1],AccF[:,i],MagnF[:,i])
+            qOsserv[:,i] = DataProcessing.GaussNewtonMethod(qOsserv[:,i-1],AccF[:,i],MagnF[:,i])
             qOsserv[:,i] = beta*qOsserv[:,i]/np.linalg.norm(qOsserv[:,i])
             
             # End Observation Computing
@@ -2051,12 +2113,12 @@ class IMUDataProcessing:
             qUpdate[:,i] = qUpdate[:,i]/np.linalg.norm(qUpdate[:,i])
             
             P_Update = (np.eye(4,4)-K*H)@P_Predicted
-            # Angles[:,i] = IMUDataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
+            # Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
 
             if conj == True:
-                Angles[:,i] = IMUDataProcessing.GetAnglesFromQuaternion(IMUDataProcessing.quaternConj(qUpdate[:,i]))
+                Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(qUpdate[:,i]))
             else:
-                Angles[:,i] = IMUDataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
+                Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
             i += 1
 
         return np.asarray(Angles).T
@@ -2110,7 +2172,7 @@ class IMUDataProcessing:
 
         M = [0,Magnetometer[0],Magnetometer[1],Magnetometer[2]]
         # Reference direction of Earth's magnetic feild
-        h = IMUDataProcessing.quaternProd(q, IMUDataProcessing.quaternProd(M,IMUDataProcessing.quaternConj(q)))
+        h = DataProcessing.quaternProd(q, DataProcessing.quaternProd(M,DataProcessing.quaternConj(q)))
         b = [0,np.linalg.norm([h[1],h[2]]),0,h[3]]
 
         # Gradient decent algorithm corrective step
@@ -2136,7 +2198,7 @@ class IMUDataProcessing:
         step = step/np.linalg.norm(step)	# normalise step magnitude
         G = [0,Gyroscope[0],Gyroscope[1],Gyroscope[2]]
         # Compute rate of change of quaternion
-        qDot = 0.5 * IMUDataProcessing.quaternProd(q, G) - Beta * step.T
+        qDot = 0.5 * DataProcessing.quaternProd(q, G) - Beta * step.T
         # Integrate to yield quaternion
         q = q + qDot * SamplePeriod
         self.Quaternion = q/np.linalg.norm(q) # normalise quaternion
@@ -2247,15 +2309,15 @@ class IMUDataProcessing:
         https://github.com/tuliofalmeida/pyjama
         """
         madgwick = []
-        madgFilter = IMUDataProcessing(Quaternion=np.asarray([[1,0,0,0]]))
+        madgFilter = DataProcessing(Quaternion=np.asarray([[1,0,0,0]]))
         for i in range(len(gyr)):
             q = madgFilter.Madgwick9DOFUpdate(gyr[i],acc[i],mag[i], 1/freq, Beta = beta1)
-            madgwick.append(IMUDataProcessing.quatern2euler(IMUDataProcessing.quaternConj(q[0])))
+            madgwick.append(DataProcessing.quatern2euler(DataProcessing.quaternConj(q[0])))
 
         madgwick = []
         for i in range(len(gyr)):
             q = madgFilter.Madgwick9DOFUpdate(gyr[i],acc[i],mag[i], 1/freq, Beta = beta2)
-            madgwick.append(IMUDataProcessing.quatern2euler(IMUDataProcessing.quaternConj(q[0])))
+            madgwick.append(DataProcessing.quatern2euler(DataProcessing.quaternConj(q[0])))
 
         return np.asarray(madgwick)*180/math.pi
 
@@ -2310,7 +2372,7 @@ class IMUDataProcessing:
 
         return mean,std
 
-    def pattern_extraction(jointAngle,time,threshold,cicle=2,df=True,plot=False,bias=0):
+    def pattern_extraction(jointAngle,time,threshold,cycle=2,df=True,plot=False,bias=0):
         """ Find and extract patterns from the data. 
            Able to plot all overlapping pattern data 
            for easy understanding. This function was 
@@ -2331,7 +2393,7 @@ class IMUDataProcessing:
         threshold: float
             Point at which the data moves between 
             movements. Example: flexion and extension.
-        cicle: int
+        cycle: int
             Number of points to be considered a pattern.
         df: bool
             Determines whether the input data (jointAngle 
@@ -2341,7 +2403,7 @@ class IMUDataProcessing:
         plot: bool
             Determines if the function will return the plot.
         bias: int optional
-            Value to compensate the cicle adjust.
+            Value to compensate the cycle adjust.
 
         Returns
         -------
@@ -2363,10 +2425,10 @@ class IMUDataProcessing:
         if plot == True:
             plt.figure(figsize=(12,9))
         
-        diff = IMUDataProcessing.low_pass_filter((jointAngle[1:] - jointAngle[:-1]))
+        diff = DataProcessing.low_pass_filter((jointAngle[1:] - jointAngle[:-1]))
         zero_crossings = np.where(np.diff(np.signbit(jointAngle-threshold)))[0]
         Time_Data_Array = []
-        mCicloqtd = cicle
+        mCicloqtd = cycle
         rom = []
 
         for i in range(int(len(zero_crossings)/(mCicloqtd+1))-1): 
@@ -2376,20 +2438,21 @@ class IMUDataProcessing:
             rom.append(data)
 
             for j in range(len(tempo)):
-                Time_Data_Array.append((tempo[j],data[j]))
+                Time_Data_Array.append((tempo[j],data[j]));
     
             if plot == True:
-                plt.plot(tempo, jointAngle[zero_crossings[0+ciclo]:zero_crossings[mCicloqtd+ciclo]])
+                plt.plot(tempo, DataProcessing.low_pass_filter(jointAngle[zero_crossings[0+ciclo]:zero_crossings[mCicloqtd+ciclo]]));
 
         if plot == True:
-            plt.title('Pattern Extraction',fontsize = 20)
-            plt.ylabel('Angle (°)',fontsize = 18)
-            plt.xlabel('Cicle (%)',fontsize = 18)
+            plt.title('Pattern Extraction',fontsize = 30);
+            plt.ylabel('Angle (°)',fontsize = 30);
+            plt.xlabel('Cycle (%)',fontsize = 30);
+            plt.grid();
             plt.show();
 
         return np.asarray(Time_Data_Array),np.asarray(rom)
 
-    def patternIC(all_x, all_y,poly_degree = 1,IC = 1.96,df = True,plot=False,figuresize = (12,9), title ='Trajectory IC-95',x_label = 'X Axis',y_label = 'Y Axis'):
+    def patternCI(all_x, all_y,poly_degree = 1,CI = 1.96,df = True,plot=False,figuresize=(12,9),title='Trajectory CI-95',x_label='Cycle (%)',y_label='Angle (°)',label1='Data 1',label2='Data 2',label3='CI'):
         """Calculates the confidence interval of the 
            patterns extracted by the 'pattern_extraction' 
            function.
@@ -2402,7 +2465,7 @@ class IMUDataProcessing:
            Joint angle data.
         poly_degree: int
            Degree of the polynomial to fit the data curve.
-        IC: float
+        CI: float
            Reference value for calculating the 95% 
            confidence interval.
         df: bool
@@ -2420,15 +2483,21 @@ class IMUDataProcessing:
            Determine the label of the X axis.
         y_label: string optional
            Determine the label of the Y axis.
+        label1: str
+           Label for data 1.
+        label2: str
+           Label for data 2.   
+        label3: str
+           Label for CI.           
            
         Returns
         -------
         statistics: ndarray
            An array containing the confidence 
-           interval, standard deviation, r²,
-           Polynomial coefficient, estimated 
-           minimum, estimated maximum and 
-           data variance.
+           interval[0], standard deviation[1],
+           Polynomial coefficient[2], r²[3], 
+           estimated minimum[4], estimated maximum[5] 
+           and data variance[6].
        
         See Also
         --------
@@ -2444,9 +2513,9 @@ class IMUDataProcessing:
         yest = np.polyval(coef,all_x)
 
         stdev = np.sqrt(sum((yest - all_y)**2)/(len(all_y)-2))
-        confidence_interval = IC*stdev
+        confidence_interval = CI*stdev
 
-        r2 = IMUDataProcessing.rsquared(all_y,yest)
+        r2 = DataProcessing.rsquared(all_y,yest)
 
         yup = []
         ydown = []
@@ -2462,20 +2531,80 @@ class IMUDataProcessing:
             yupsorted.append(yup[xgeralind[i]])
 
         if plot == True:
-            plt.figure(figsize=figuresize)
-            plt.plot(all_x,all_y,'.',color= 'black')
-            plt.plot(all_x,yest,'.',color= 'red')
-            plt.fill_between(np.sort(all_x),yupsorted, ydownsorted,color='r',alpha=.1)
-            plt.title(title).set_size(30)
-            plt.xlabel(x_label).set_size(30)
-            plt.ylabel(y_label).set_size(30)
+            plt.figure(figsize=figuresize);
+            plt.plot(all_x,all_y,'.',color= 'black');
+            plt.plot(all_x,yest,'.',color= 'red');
+            plt.fill_between(DataProcessing.low_pass_filter(np.sort(all_x)),yupsorted, ydownsorted,color='r',alpha=.1);
+            plt.title(title).set_size(30);
+            plt.xlabel(x_label).set_size(30);
+            plt.ylabel(y_label).set_size(30);
+            plt.legend([label1, label2, label3], loc='upper right',fontsize = 20)
+            plt.grid();
+            plt.show();
 
         var = stdev**2
         statistics = confidence_interval,stdev,coef,r2,min(yest),max(yest),yest,var
 
         return statistics
     
-    def threshold_ajust(data,time,threshold,x_adjust):  
+    def data_comparison(Time_Data_Array,statistics_1,statistics_2, plot = True, label1 = 'Data 1', label2 = 'Data 2'):
+         """This function is made for visual
+         comparison of two data, using the data 
+         average. Using the output of the 
+         'patter_extraction' and 'patternCI' 
+         function.
+
+         Parameters
+         ----------
+         Time_Data_Array: ndarray
+           First output from patter_extraction .
+         statistics_1: ndarray
+           Data 1 output from 'patternCI'.
+         statistics_2: float
+           Data 2 output from 'patternCI'.
+         plot: bool optional
+           Plot the comparsion graph.
+         label1: str
+           Label for data 1.
+         label1: str
+           Label for data 2.    
+            
+         Returns
+         -------
+         plot: if True
+               plots the data as a function 
+               of time and marks the threshold
+               points in the data
+         poly1: ndarray
+               Polynomial from data 1
+         poly2: ndarray
+               Polynomial from data 1
+         
+         See Also
+         --------
+         Developed by T.F Almeida in 25/03/2021
+
+         For more information see:
+         https://github.com/tuliofalmeida/pyjama"""           
+         poly1 = np.polyval(statistics_1[2],Time_Data_Array[:,0])
+         poly2 = np.polyval(statistics_2[2],Time_Data_Array[:,0])
+         if plot:
+               plt.figure(figsize=(12,9))
+               plt.plot(Time_Data_Array[:,0],poly1,'.',color='black', markersize=12)
+               plt.plot(Time_Data_Array[:,0],poly2,'.',color='red', markersize=12)
+               plt.legend([label1, label2], loc='upper right',fontsize = 20)
+               plt.title('Data Comparison',fontsize = 30);
+               plt.ylabel('Angle (°)',fontsize = 30);
+               plt.xlabel('Cycle (%)',fontsize = 30);
+               plt.grid();
+               plt.show();
+
+               return poly1,poly2;
+
+         else:
+               return poly1,poly2
+            
+    def threshold_ajust(data,time,threshold,x_adjust=0, df =True):  
         """This function plots the data 
         as a function of time and marks 
         the threshold points in the data 
@@ -2483,9 +2612,9 @@ class IMUDataProcessing:
 
         Parameters
         ----------
-        data: ndarray
+        data: ndarray or dataframe
            Joint angle data.
-        time: ndarray
+        time: ndarray or dataframe
            Time data.
         threshold: float
             Point at which the data moves 
@@ -2505,14 +2634,18 @@ class IMUDataProcessing:
 
         For more information see:
         https://github.com/tuliofalmeida/pyjama  """ 
+        if df == True:
+            data = pyjamalib.DataHandler.csvToFloat(data)
+            time = pyjamalib.DataHandler.csvToFloat(time) 
         crossings = np.where(np.diff(np.signbit(data-threshold)))[0]
         plt.figure(figsize=(12,9))
         plt.plot(time,data)
         for i in range(len(crossings)):
             plt.plot(crossings[i]+x_adjust,data[crossings[i]], '.', color = 'red')
-        plt.title('Threshold Adjust',fontsize = 20)
-        plt.ylabel('Angle (°)',fontsize = 18)
-        plt.xlabel('Time (bins)',fontsize = 18)
+        plt.title('Threshold Adjust',fontsize = 30)
+        plt.ylabel('Angle (°)',fontsize = 30)
+        plt.xlabel('Time (bins)',fontsize = 30)
+        plt.grid();
         plt.show();
 
     def range_of_motion(data, df = True):
