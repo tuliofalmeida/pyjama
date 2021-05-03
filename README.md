@@ -54,6 +54,6 @@ The publications related to this project are still in the process of being publi
 
 # Credits 
 
-[Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
-[Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
+- [Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
+- [Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
 
