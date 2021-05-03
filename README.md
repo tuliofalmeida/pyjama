@@ -48,3 +48,12 @@ pyrat (0.x.x, /path/to/pyjamalib)
 - Abner Cardoso - [GitHub](https://github.com/abnr) - [Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
 - André Dantas - [GitHub](https://github.com/lordcobisco) - [Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
 
+# Publications
+
+The publications related to this project are still in the process of being published. If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
+
+# Credits 
+
+[Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
+[Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
+
