@@ -1,6 +1,6 @@
 
 [![Build Status](https://api.travis-ci.com/python/mypy.svg?branch=master)](https://travis-ci.com/tuliofalmeida/pyjama)
-[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+[![python-version](https://upload.wikimedia.org/wikipedia/commons/a/a5/Blue_Python_3.8_Shield_Badge.svg)](https://www.python.org/)
 [![python-version](https://img.shields.io/pypi/pyversions/pyjamalib)](https://www.python.org/)
 [![PyPI version fury.io](https://img.shields.io/pypi/v/pyjamalib)](https://pypi.org/project/pyjamalib/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
