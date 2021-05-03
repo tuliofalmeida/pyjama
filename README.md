@@ -7,6 +7,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/tuliofalmeida/pyjama)
 [![last-commit](https://img.shields.io/github/last-commit/tuliofalmeida/pyjama)](https://github.com/tuliofalmeida/pyjama/commits/main)
+[![downloads](https://img.shields.io/pypi/dm/pyjamalib)](https://pypi.org/project/pyjamalib/)
 
 # PyJama - Python for Joint Angle Measurement Acquisition
 
