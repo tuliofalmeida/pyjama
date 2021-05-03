@@ -43,14 +43,8 @@ pyrat (0.x.x, /path/to/pyjamalib)
 
 
 # Development Team:
--------------------
 
-- [Tulio Almeida]
-- [Abner Cardoso] 
-- [André Dantas]
-
-<!-- Links -->
-[Abner Cardoso]:https://github.com/abnr
-[Tulio Almeida]:https://github.com/tuliofalmeida
-[André Dantas]:https://github.com/lordcobisco
+- Tulio Almeida - [GitHub](https://github.com/tuliofalmeida) - [Scholar](https://scholar.google.com/citations?user=kkOy-JkAAAAJ&hl=pt-BR)
+- Abner Cardoso - [GitHub](https://github.com/abnr) - [Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
+- André Dantas - [GitHub](https://github.com/lordcobisco) - [Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
 
