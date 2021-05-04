@@ -2800,5 +2800,8 @@ class DataProcessing:
         epsilon = np.finfo(np.float64).eps
         mape = np.abs(y_pred - y_true) / np.maximum(np.abs(y_true), epsilon)
         output_errors = np.average(mape,weights=sample_weight, axis=0)
-
-        return output_errors
+        result = []
+        for ç in range(len(output_errors)):
+            result.append("{:.2f}".format(output_errors[ç]))
+            
+        return np.asarray(result)
