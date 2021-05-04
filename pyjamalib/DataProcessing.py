@@ -775,10 +775,38 @@ class DataProcessing:
         R[2,2] = math.cos(theta) * math.cos(phi)
 
         return R
+    
+    def euler2quat(euler):
+        """ Converts a Euler angles to quaternions.
 
+        Parameters
+        ----------
+        euler: ndarray
+            quaternion orientation.
+
+        Returns
+        -------
+        quat: ndarray
+            quaternion orientation.
+
+        See Also
+        --------
+        Developed T.F Almeida in 25/03/2021 using
+        S.O.H Madgwick library.
+        
+        For more information see:
+        Test scripts
+        http://www.x-io.co.uk/node/8#quaternions
+        https://github.com/tuliofalmeida/pyjama
+        """
+        rot = [DataProcessing.euler2rotMat(euler[i][0],euler[i][1],euler[i][2]) for i in range(len(euler))]
+        quat = [DataProcessing.rotMat2quatern(rot[i]) for i in range(len(rot))]
+
+        return np.asarray(quat)
+    
     def quatern2euler(q):
         """ Converts a quaternion orientation to 
-            ZYX Euler angles where phi is a rotation 
+            XYZ Euler angles where phi is a rotation 
             around X, theta around Y and psi around Z.
 
         Parameters
@@ -2723,3 +2751,54 @@ class DataProcessing:
             x = x + max(data[i])-min(data[i])
         general_mean = x/len(data)
         return general_mean
+    
+    def mean_absolute_percentage_error(y_true, y_pred,sample_weight=None):  
+        """Mean absolute percentage error regression loss.
+        Note here that we do not represent the output as a percentage in range
+        [0, 100]. Instead, we represent it in range [0, 1/eps].
+        
+        Parameters
+        ----------
+        y_true : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Ground truth (correct) target values.
+        y_pred : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Estimated target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights.
+            
+        Returns
+        -------
+        loss : float or ndarray of floats in the range [0, 1/eps]
+            MAPE output is non-negative floating point. The best value is 0.0.
+            But note the fact that bad predictions can lead to arbitarily large
+            MAPE values, especially if some y_true values are very close to zero.
+            Note that we return a large value instead of `inf` when y_true is zero.
+            
+        Examples
+        --------
+        >>> from sklearn.metrics import mean_absolute_percentage_error
+        >>> y_true = [3, -0.5, 2, 7]
+        >>> y_pred = [2.5, 0.0, 2, 8]
+        >>> mean_absolute_percentage_error(y_true, y_pred)
+        0.3273...
+        >>> y_true = [[0.5, 1], [-1, 1], [7, -6]]
+        >>> y_pred = [[0, 2], [-1, 2], [8, -5]]
+        >>> mean_absolute_percentage_error(y_true, y_pred)
+        0.5515...
+        >>> mean_absolute_percentage_error(y_true, y_pred, multioutput=[0.3, 0.7])
+        0.6198...
+        
+        See Also
+        --------
+        Adapted by T.F Almeida in 25/03/2021
+        Original code of scikit-learn v.0.24
+
+        For more information see:
+        https://github.com/scikit-learn/scikit-learn/blob/15a949460/sklearn/metrics/_regression.py#L197
+        https://github.com/tuliofalmeida/pyjama 
+        """          
+        epsilon = np.finfo(np.float64).eps
+        mape = np.abs(y_pred - y_true) / np.maximum(np.abs(y_true), epsilon)
+        output_errors = np.average(mape,weights=sample_weight, axis=0)
+
+        return output_errors
