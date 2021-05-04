@@ -2,7 +2,7 @@ README.md
 setup.cfg
 setup.py
 pyjamalib/DataHandler.py
-pyjamalib/IMUDataProcessing.py
+pyjamalib/DataProcessing.py
 pyjamalib/__init__.py
 pyjamalib.egg-info/PKG-INFO
 pyjamalib.egg-info/SOURCES.txt

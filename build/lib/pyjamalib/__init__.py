@@ -1,5 +1,5 @@
 from pyjamalib.DataHandler import *
-from pyjamalib.IMUDataProcessing import *
+from pyjamalib.DataProcessing import *
 import math
 import numpy as np
 import matplotlib.pyplot as plt

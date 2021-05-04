@@ -1,14 +1,27 @@
 Metadata-Version: 2.1
 Name: pyjamalib
-Version: 0.4.0
+Version: 0.5.44
 Summary: A library for analyze joint angles from IMU data
 Home-page: https://github.com/tuliofalmeida/pyjama
 Author: Túlio F. Almeida
 Author-email: tuliofalmeida@hotmail.com
 License: MIT
-Description: # PyJama - Python for Joint Angle Measurement Acquisition
+Description: 
+        [![Build Status](https://api.travis-ci.com/python/mypy.svg?branch=master)](https://travis-ci.com/tuliofalmeida/pyjama)
+        [![python-version](https://upload.wikimedia.org/wikipedia/commons/a/a5/Blue_Python_3.8_Shield_Badge.svg)](https://www.python.org/)
+        [![PyPI version fury.io](https://img.shields.io/pypi/v/pyjamalib)](https://pypi.org/project/pyjamalib/)
+        [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+        [![last-commit](https://img.shields.io/github/last-commit/tuliofalmeida/pyjama)](https://github.com/tuliofalmeida/pyjama/commits/main)
+        [![downloads](https://img.shields.io/pypi/dm/pyjamalib)](https://pypi.org/project/pyjamalib/)
+        [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+        [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/tuliofalmeida/pyjama)
+        [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb) 
+        [![stars](https://img.shields.io/github/stars/tuliofalmeida?style=social)](https://github.com/tuliofalmeida/pyjama/stargazers)
+        
+        # PyJama - Python for Joint Angle Measurement Acquisition
+        
         ---------------------------------------------------------
-        PyJama is a friendly python library for analyzing human kinematics data. Aimed at analyzing data from IMU's, MIMU's, data from optical devices and in the future tracking data from deeplearning models.
+        PyJama is a friendly python library for analyzing human kinematics data. Aimed at analyzing data from IMU's, MIMU's, data from optical devices and in the future tracking data from deeplearning models. The PyJAMA library was designed based on the [JAMA device](https://github.com/tuliofalmeida/jama).
         
         # Installation
         --------------
@@ -44,17 +57,26 @@ Description: # PyJama - Python for Joint Angle Measurement Acquisition
         pyrat (0.x.x, /path/to/pyjamalib)
         ```
         
+        # Examples
+        -----------
+        
+        [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb) Lokomat Example - Example of using the library using data extracted using JAMA.   
+        
+        
         # Development Team:
-        -------------------
         
-        - [Tulio Almeida]
-        - [Abner Cardoso] 
-        - [AndrÃ© Dantas]
+        - Tulio Almeida - [GitHub](https://github.com/tuliofalmeida) - [Scholar](https://scholar.google.com/citations?user=kkOy-JkAAAAJ&hl=pt-BR)
+        - Abner Cardoso - [GitHub](https://github.com/abnr) - [Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
+        - AndrÃ© Dantas - [GitHub](https://github.com/lordcobisco) - [Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
         
-        <!-- Links -->
-        [Abner Cardoso]:https://github.com/abnr
-        [Tulio Almeida]:https://github.com/tuliofalmeida
-        [AndrÃ© Dantas]:https://github.com/lordcobisco
+        # Publications
+        
+        The publications related to this project are still in the process of being published. If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
+        
+        # Credits 
+        
+        - [Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
+        - [Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
         
         
 Platform: UNKNOWN
