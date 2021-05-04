@@ -418,24 +418,24 @@ class DataHandler:
         nameList = list(name)
         dataDict = {}
         size = int(len(outputNames)/len(name))
-        quaternion = np.zeros((size,4))
-        accel = np.zeros((size,3))
-        gyro  = np.zeros((size,3))
-        mag   = np.zeros((size,3))
-        for j in name:
+        
+        for ç in name:
             k = 0
+            quaternion = np.zeros((size,4))
+            accel = np.zeros((size,3))
+            gyro  = np.zeros((size,3))
+            mag   = np.zeros((size,3))
             for i in range(len(outputNames)):
-                if outputNames[i] == j:
-                    quaternion[k,:] = output[i-1][0:4]
-                    accel[k,:] = output[i-1][4:7]
-                    gyro[k,:] = output[i-1][7:10]
-                    mag[k,:] = output[i-1][10:13]
+                if outputNames[i] == ç:
+                    quaternion[k,:] = output[i][0:4]
+                    accel[k,:] = output[i][4:7]
+                    gyro[k,:] = output[i][7:10]
+                    mag[k,:] = output[i][10:13]
                     k += 1
-            dataDict[j] = {'Quaternion':quaternion,
+            dataDict[ç] = {'Quaternion':quaternion,
                         'Accelerometer':accel,
                         'Gyroscope':gyro,
-                        'Magnetometer':mag
-                                        }
+                        'Magnetometer':mag}
             
         dataDict['Time'] = np.arange(0,size/freq,1/freq)
         
