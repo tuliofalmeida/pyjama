@@ -18,8 +18,7 @@ class DataProcessing:
     """
     def __init__(self, Quaternion = [1,0,0,0]): 
         """Pass the necessary variables to run the class.
-        
-        Parameters
+         Parameters
         ----------
         Quaternion:  tuple optional
             Initial positioning in quaternion.
@@ -1972,7 +1971,7 @@ class DataProcessing:
             qUpdate[:,i] = qUpdate[:,i]/np.linalg.norm(qUpdate[:,i])
             
             P_Update = (np.eye(4,4)-K*H)@P_Predicted
-            # Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
+            Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(qUpdate[:,i])
 
             if conj == True:
                 Angles[:,i] = DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(qUpdate[:,i]))
@@ -2267,7 +2266,7 @@ class DataProcessing:
 
         return np.asarray(self.Quaternion)
 
-    def MadgwickAHRS(acc,gyr,mag,freq,beta1=.9,beta2=.01,conj=True):
+    def MadgwickAHRS(acc,gyr,mag,freq,beta1=.9,beta2=.01):
         """Filters data in real time. 9 degrees of
           freedom MadgwickAHRS filter. 
 
@@ -2292,10 +2291,7 @@ class DataProcessing:
            between accuracy and response speed. Must
            be determined according with the Gyroscope
            error. Used for the others orientations.
-        conj: bool
-           Determine if the quaternion resulted will be
-           conjugated or not.
-           
+
         Returns
         -------
         Angles: ndarray
@@ -2315,18 +2311,13 @@ class DataProcessing:
         madgFilter = DataProcessing(Quaternion=np.asarray([[1,0,0,0]]))
         for i in range(len(gyr)):
             q = madgFilter.Madgwick9DOFUpdate(gyr[i],acc[i],mag[i], 1/freq, Beta = beta1)
-            if conj:
-                madgwick.append(DataProcessing.quatern2euler(DataProcessing.quaternConj(q[0])))
-            else:
-                madgwick.append(DataProcessing.quatern2euler(q[0]))
+            madgwick.append(DataProcessing.quatern2euler(DataProcessing.quaternConj(q[0])))
+
         madgwick = []
         for i in range(len(gyr)):
             q = madgFilter.Madgwick9DOFUpdate(gyr[i],acc[i],mag[i], 1/freq, Beta = beta2)
-            if conj:
-                madgwick.append(DataProcessing.quatern2euler(DataProcessing.quaternConj(q[0])))
-            else:
-                madgwick.append(DataProcessing.quatern2euler(q[0]))
-                
+            madgwick.append(DataProcessing.quatern2euler(DataProcessing.quaternConj(q[0])))
+
         return np.asarray(madgwick)*180/math.pi
 
     def rsquared(x, y):
