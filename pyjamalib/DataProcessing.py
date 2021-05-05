@@ -777,7 +777,8 @@ class DataProcessing:
         return R
     
     def euler2quat(euler):
-        """ Converts a Euler angles to quaternions.
+        """ Converts a Euler angles to quaternions
+        performing euler2rotmat and rotMat2quatern.
 
         Parameters
         ----------
@@ -1325,7 +1326,8 @@ class DataProcessing:
         Parameters
         ----------
         Angles: ndarray
-           Euler angles (Roll,Pitch,Yaw).
+           Euler angles (Roll,Pitch,Yaw)
+           in degrees.
 
         Returns
         -------
@@ -1342,10 +1344,10 @@ class DataProcessing:
         https://github.com/danicomo/9dof-orientation-estimation
         https://github.com/tuliofalmeida/pyjama
         """       
-        q = np.zeros((4,1))
-        x = Angles[:,0]*math.pi/180
-        y = Angles[:,1]*math.pi/180
-        z = Angles[:,2]*math.pi/180
+        q = np.zeros((4))
+        x = Angles[0]*math.pi/180
+        y = Angles[1]*math.pi/180
+        z = Angles[2]*math.pi/180
 
         q[0] = math.cos(x/2)*math.cos(y/2)*math.cos(z/2)+math.sin(x/2)*math.sin(y/2)*math.sin(z/2)
         q[1] = math.sin(x/2)*math.cos(y/2)*math.cos(z/2)-math.cos(x/2)*math.sin(y/2)*math.sin(z/2)
@@ -1643,7 +1645,7 @@ class DataProcessing:
         mag: ndarray 
            Magnetometer array with XYZ in mG
         alpha: float
-           Acceleroeter data contribution to angle.
+           Accelerometer data contribution to angle.
         beta: float
            Factor to improve the effectiveness of 
            integrating the accelerometer with gyroscope.
@@ -1708,7 +1710,7 @@ class DataProcessing:
         mag: ndarray 
            Magnetometer array with XYZ in mG.
         alpha: float
-           Acceleroeter data contribution to angle.
+           Accelerometer data contribution to angle.
         beta: float
            Factor to improve the effectiveness of 
            integrating the accelerometer with gyroscope.
@@ -1757,7 +1759,7 @@ class DataProcessing:
         dt: float
            Sample time
         alpha: float
-           Acceleroeter data contribution to angle.
+           Accelerometer data contribution to angle.
         beta: float
            Factor to improve the effectiveness of 
            integrating the accelerometer with gyroscope.
@@ -1831,7 +1833,7 @@ class DataProcessing:
         dt: float
            Sample time.
         alpha: float
-           Acceleroeter data contribution to angle.
+           Accelerometer data contribution to angle.
         beta: float
            Factor to improve the effectiveness of 
            integrating the accelerometer with gyroscope.
@@ -2776,17 +2778,17 @@ class DataProcessing:
             
         Examples
         --------
-        >>> from sklearn.metrics import mean_absolute_percentage_error
-        >>> y_true = [3, -0.5, 2, 7]
-        >>> y_pred = [2.5, 0.0, 2, 8]
-        >>> mean_absolute_percentage_error(y_true, y_pred)
+        'from sklearn.metrics import mean_absolute_percentage_error
+        y_true = [3, -0.5, 2, 7]
+        y_pred = [2.5, 0.0, 2, 8]
+        mean_absolute_percentage_error(y_true, y_pred)
         0.3273...
-        >>> y_true = [[0.5, 1], [-1, 1], [7, -6]]
-        >>> y_pred = [[0, 2], [-1, 2], [8, -5]]
-        >>> mean_absolute_percentage_error(y_true, y_pred)
+        y_true = [[0.5, 1], [-1, 1], [7, -6]]
+        y_pred = [[0, 2], [-1, 2], [8, -5]]
+        mean_absolute_percentage_error(y_true, y_pred)
         0.5515...
-        >>> mean_absolute_percentage_error(y_true, y_pred, multioutput=[0.3, 0.7])
-        0.6198...
+        mean_absolute_percentage_error(y_true, y_pred, multioutput=[0.3, 0.7])
+        0.6198...'
         
         See Also
         --------
@@ -2798,10 +2800,7 @@ class DataProcessing:
         https://github.com/tuliofalmeida/pyjama 
         """          
         epsilon = np.finfo(np.float64).eps
-        mape = np.abs(y_pred - y_true) / np.maximum(np.abs(y_true), epsilon)
-        output_errors = np.average(mape,weights=sample_weight, axis=0)
-        result = []
-        for ç in range(len(output_errors)):
-            result.append("{:.2f}".format(output_errors[ç]))
+        mape = np.abs(y_pred - y_true)/np.max(np.abs(y_true))
+        output_errors = np.mean(mape)
             
-        return np.asarray(result)
+        return output_errors*100

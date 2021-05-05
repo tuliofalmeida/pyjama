@@ -18,7 +18,7 @@ class DataPlot:
     """
     def pyjama_subplot(data,time,box_data=None,title='Title',x_label='Time (s)',
                     y_label='Y Label',data_name=None,labels=None,box_text_a=None,
-                    box_text_b=None,colors=None,grid=True,ret=False):
+                    box_text_b=None,h_box=None,colors=None,grid=True,ret=False):
         
         """Plot the data according to the size of 
         the array in subplots. It allows to plot a box 
@@ -34,6 +34,9 @@ class DataPlot:
         box_data: ndarray or tuple
             Data you want to put in a separate 
             box. If empty, it will not plot anything.
+            It was developed to receive short data 
+            accompanied by a short text for the label, 
+            such as error metrics (MPE, RMSE, MSE).
         title: str
             Plot title.
         x_label: str
@@ -51,6 +54,8 @@ class DataPlot:
         box_text_a: str
             Text that you want to be displayed 
             after the data plotted in the box
+        h_box: float
+            Constant to determine the box height.
         colors: str list
             Name of the colors that you want the 
             data to be plotted (in order), 
@@ -79,19 +84,24 @@ class DataPlot:
         size = data[0].shape[1] 
         plt.tight_layout()
         textstr=[]
-
+        top_boxes = np.zeros((len(data),size))
+        top_box_max = np.zeros(size)
+        
         fig, axs = plt.subplots(size,figsize=(18, 12))
         fig.suptitle(title, fontsize = 28)
 
         if type(data_name) == type(None):
             data_name = []
             for ç in range(size):    
-                data_name.append('Data '+str(ç))
-
+                data_name.append('Data '+str(ç+1))
+                
         if type(labels) == type(None):
             labels = []
             for ç in range(size):    
-                labels.append('Data '+str(ç))
+                labels.append('Data '+str(ç+1))
+
+        if type(h_box) == type(None):
+            h_box = .35
 
         if type(colors) == type(None):
             colors = []
@@ -105,14 +115,19 @@ class DataPlot:
             box = True
             for ç in range(size):
                 textstr.append(box_text_b +str(box_data[ç])+box_text_a)
-                
+
+        for i in range(len(data)):
+            for ç in range(size):
+                top_boxes[i][ç] = max(data[i][:,ç])
+                top_box_max[ç] = max(top_boxes[:,ç])
+
         for ç in range(size):
             for i in range(len(data)):
                 axs[ç].plot(time, data[i][:,ç],label=labels[i],color=colors[i])
                 axs[ç].set_title(data_name[ç], fontsize=20) 
                 if box:
-                    axs[ç].text(-2.8, 1.25, textstr[ç], fontsize=14,
-                    verticalalignment='top', bbox=props)
+                    axs[ç].text(-2.7, top_box_max[ç]+(top_box_max[ç]*h_box), textstr[ç], fontsize=14,
+                    verticalalignment='top', bbox=props,horizontalalignment='left')       
 
         for ax in axs.flat:
             ax.set(xlabel=x_label, ylabel=y_label)

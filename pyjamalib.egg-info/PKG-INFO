@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyjamalib
-Version: 0.5.54
+Version: 0.5.57
 Summary: A library for analyze joint angles from IMU data
 Home-page: https://github.com/tuliofalmeida/pyjama
 Author: Túlio F. Almeida
@@ -62,12 +62,21 @@ Description:
         
         [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb) Lokomat Example - Example of using the library using data extracted using JAMA.   
         
+        # Contributing
+        
+        For minor fixes of code and documentation, please go ahead and submit a pull request.  A gentle introduction to the process can be found [here](https://www.freecodecamp.org/news/a-simple-git-guide-and-cheat-sheet-for-open-source-contributors/).
+        
+        Check out the list of issues that are easy to fix. Working on them is a great way to move the project forward.
+        
+        Larger changes (rewriting parts of existing code from scratch, adding new functions to the core, adding new libraries) should generally be discussed by opening an issue first. PRs with such changes require testing and approval.
+        
+        Feature branches with lots of small commits (especially titled "oops", "fix typo", "forgot to add file", etc.) should be squashed before opening a pull request. At the same time, please refrain from putting multiple unrelated changes into a single pull request.
         
         # Development Team:
         
-        - Tulio Almeida - [GitHub](https://github.com/tuliofalmeida) - [Scholar](https://scholar.google.com/citations?user=kkOy-JkAAAAJ&hl=pt-BR)
-        - Abner Cardoso - [GitHub](https://github.com/abnr) - [Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
-        - AndrÃ© Dantas - [GitHub](https://github.com/lordcobisco) - [Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
+        - Tulio Almeida - [GitHub](https://github.com/tuliofalmeida) - [Google Scholar](https://scholar.google.com/citations?user=kkOy-JkAAAAJ&hl=pt-BR)
+        - Abner Cardoso - [GitHub](https://github.com/abnr) - [Google Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
+        - AndrÃ© Dantas - [GitHub](https://github.com/lordcobisco) - [Google Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
         
         # Publications
         
@@ -77,6 +86,7 @@ Description:
         
         - [Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
         - [Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
+        - [Center for Vision, Speech & Signal Processing - University of Surrey](https://www.surrey.ac.uk/centre-vision-speech-signal-processing). For making available the [Total Capture dataset](https://cvssp.org/data/totalcapture/) used to develop the library example. Reference paper: [Trumble et. al., 2017](https://core.ac.uk/download/pdf/84589062.pdf)
         
         
 Platform: UNKNOWN
