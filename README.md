@@ -78,4 +78,5 @@ The publications related to this project are still in the process of being publi
 
 - [Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
 - [Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
+- [Center for Vision, Speech & Signal Processing - University of Surrey](https://www.surrey.ac.uk/centre-vision-speech-signal-processing). For making available the [dataset Total Capture](https://cvssp.org/data/totalcapture/) used to develop the library example. Reference paper: [Trumble et. al., 2017](https://core.ac.uk/download/pdf/84589062.pdf)
 
