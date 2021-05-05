@@ -5,7 +5,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![last-commit](https://img.shields.io/github/last-commit/tuliofalmeida/pyjama)](https://github.com/tuliofalmeida/pyjama/commits/main)
 [![downloads](https://img.shields.io/pypi/dm/pyjamalib)](https://pypi.org/project/pyjamalib/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/tuliofalmeida/pyjama)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb) 
 [![stars](https://img.shields.io/github/stars/tuliofalmeida?style=social)](https://github.com/tuliofalmeida/pyjama/stargazers)
