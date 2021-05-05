@@ -5,7 +5,7 @@ import pandas as pd
 import pyjamalib
 import scipy.signal,scipy.stats
 
-class DataProcessing:
+class DataPlot:
     """Integrates all functions to perform data 
     processing to calculate the joint angle.
 
@@ -18,7 +18,7 @@ class DataProcessing:
     """
     def pyjama_subplot(data,time,box_data=None,title='Title',x_label='Time (s)',
                     y_label='Y Label',data_name=None,labels=None,box_text_a=None,
-                    box_text_b=None,colors=None,ret=False):
+                    box_text_b=None,colors=None,grid=True,ret=False):
         
         """Plot the data according to the size of 
         the array in subplots. It allows to plot a box 
@@ -56,6 +56,8 @@ class DataProcessing:
             data to be plotted (in order), 
             remembering that they must be names 
             supported by matplotlib
+        grid: bool
+            Plot grids in each subplot        
         ret: bool
             If true, the function will return to 
             the fig for a variable.
@@ -79,7 +81,7 @@ class DataProcessing:
         textstr=[]
 
         fig, axs = plt.subplots(size,figsize=(18, 12))
-        fig.suptitle(title, fontsize = 25)
+        fig.suptitle(title, fontsize = 28)
 
         if type(data_name) == type(None):
             data_name = []
@@ -107,8 +109,7 @@ class DataProcessing:
         for ç in range(size):
             for i in range(len(data)):
                 axs[ç].plot(time, data[i][:,ç],label=labels[i],color=colors[i])
-                axs[ç].set_title(data_name[ç], fontsize=20)
-                axs[ç].grid()    
+                axs[ç].set_title(data_name[ç], fontsize=20) 
                 if box:
                     axs[ç].text(-2.8, 1.25, textstr[ç], fontsize=14,
                     verticalalignment='top', bbox=props)
@@ -117,8 +118,11 @@ class DataProcessing:
             ax.set(xlabel=x_label, ylabel=y_label)
             ax.yaxis.label.set_size(20)
             ax.xaxis.label.set_size(20)
-            ax.legend(loc="upper right",fontsize=14)
             ax.label_outer()
+            ax.legend(loc="upper right",fontsize=14)
+            if grid:
+                ax.grid()
+            
 
         plt.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.9,wspace=0.4,hspace=0.4)
 
