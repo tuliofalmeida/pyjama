@@ -69,7 +69,6 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 - Abner Cardoso - [GitHub](https://github.com/abnr) - [Google Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
 - André Dantas - [GitHub](https://github.com/lordcobisco) - [Google Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
 
-[![tulio-git](https://img.shields.io/logo=https://logos-world.net/wp-content/uploads/2020/11/GitHub-Emblem.png)](https://github.com/tuliofalmeida)
 # Publications
 
 The publications related to this project are still in the process of being published. If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
