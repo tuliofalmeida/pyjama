@@ -1644,6 +1644,8 @@ class DataProcessing:
            Gyroscope array with XYZ in rad/s
         mag: ndarray 
            Magnetometer array with XYZ in mG
+        dt: float
+           Sample time.
         alpha: float
            Accelerometer data contribution to angle.
         beta: float
@@ -1697,7 +1699,7 @@ class DataProcessing:
         self.qGyro_1 = qGyro
         return Angles
 
-    def ComplementaryFilterGN(acc,gyr,mag,dt,alpha=.01,beta=.01, conj = True):
+    def ComplementaryFilterGN(acc,gyr,mag,dt,alpha=.01,beta=.01,conj=True,low_pass=None):
         """Filters data offline. Implemented 
            using the Gauss-Newton optimizer. 
 
@@ -1709,6 +1711,8 @@ class DataProcessing:
            Gyroscope array with XYZ in rad/s.
         mag: ndarray 
            Magnetometer array with XYZ in mG.
+        dt: float
+           Sample time.
         alpha: float
            Accelerometer data contribution to angle.
         beta: float
@@ -1718,6 +1722,12 @@ class DataProcessing:
         conj: bool
            Determine if the quaternion resulted will be
            conjugated or not.
+        low_pass: None
+            If this value is different from "None" the 
+            Accelerometer and Magnetometer data will be 
+            filtered using a low pass filter (function 
+            "low_pass_filter") with the intensity being 
+            equal to the value passed in low_pass.
 
         Returns
         -------
@@ -1736,6 +1746,10 @@ class DataProcessing:
         CF = DataProcessing()
         acqSize = acc.shape[0]
         Angles = np.zeros((3,acqSize))
+
+        if type(low_pass) != type(None):
+            acc = DataProcessing.low_pass_filter(acc,low_pass)
+            mag = DataProcessing.low_pass_filter(mag,low_pass)
 
         CF.i = 1
         while (CF.i < acqSize):
@@ -1812,13 +1826,12 @@ class DataProcessing:
             Angles = DataProcessing.GetAnglesFromQuaternion(qFilt)
 
         self.qFilt_1 = qFilt
-        # self.qGyro_1 = qGyro
         self.qOsserv_1 = qOsserv
         return Angles
 
 
 
-    def ComplementaryFilterGD(acc,gyr,mag,dt,alpha=.01,beta=.5, conj = True):
+    def ComplementaryFilterGD(acc,gyr,mag,dt,alpha=.01,beta=.5,conj=True,low_pass=None):
         """Filters data offline. Implemented 
            using the Gradient Descendent optimizer. 
 
@@ -1841,6 +1854,12 @@ class DataProcessing:
         conj: bool
            Determine if the quaternion resulted will be
            conjugated or not.
+        low_pass: None
+            If this value is different from "None" the 
+            Accelerometer and Magnetometer data will be 
+            filtered using a low pass filter (function 
+            "low_pass_filter") with the intensity being 
+            equal to the value passed in low_pass.
 
         Returns
         -------
@@ -1860,6 +1879,10 @@ class DataProcessing:
         acqSize = acc.shape[0]
         Angles = np.zeros((3,acqSize))
 
+        if type(low_pass) != type(None):
+            acc = DataProcessing.low_pass_filter(acc,low_pass)
+            mag = DataProcessing.low_pass_filter(mag,low_pass)
+
         CF.i = 1
         while (CF.i < acqSize):
             Angles[:,CF.i] = CF.ComplementaryFilterGDUpdate(acc[CF.i,:],gyr[CF.i,:],mag[CF.i,:],dt,alpha,beta, conj)
@@ -1867,7 +1890,7 @@ class DataProcessing:
 
         return np.asarray(Angles).T
 
-    def KalmanGD(acc,gyr,mag,gyrcalib = None,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
+    def KalmanGD(acc,gyr,mag,gyrcalib=None,dt=1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj=True,low_pass=None):
         """Filters data offline. Kalman filter
         using the Gradient Descendent optimizer. 
 
@@ -1893,6 +1916,12 @@ class DataProcessing:
         conj: bool
            Determine if the quaternion resulted will be
            conjugated or not.
+        low_pass: None
+            If this value is different from "None" the 
+            Accelerometer and Magnetometer data will be 
+            filtered using a low pass filter (function 
+            "low_pass_filter") with the intensity being 
+            equal to the value passed in low_pass.
 
         Returns
         -------
@@ -1918,6 +1947,10 @@ class DataProcessing:
             _,varG = DataProcessing.varianceEstimation(gyrcalib)
             var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T            
 
+        if type(low_pass) != type(None):
+            acc = DataProcessing.low_pass_filter(acc,low_pass)
+            mag = DataProcessing.low_pass_filter(mag,low_pass)
+            
         # Acquisition variables
         mu       = np.zeros((1,acqSize))
         dq       = np.zeros((4,acqSize))
@@ -2010,7 +2043,7 @@ class DataProcessing:
 
         return np.asarray(Angles).T
 
-    def KalmanGN(acc,gyr,mag,gyrcalib=None,dt = 1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj = True):
+    def KalmanGN(acc,gyr,mag,gyrcalib=None,dt=1/75,R_In=[0.01,0.01,0.01,0.01],beta=.05,conj=True,low_pass=None):
         """Filters data offline. Kalman filter
         using the Gauss-Newton optimizer. 
 
@@ -2036,7 +2069,13 @@ class DataProcessing:
         conj: bool
            Determine if the quaternion resulted will be
            conjugated or not.
-
+        low_pass: None
+            If this value is different from "None" the 
+            Accelerometer and Magnetometer data will be 
+            filtered using a low pass filter (function 
+            "low_pass_filter") with the intensity being 
+            equal to the value passed in low_pass.
+            
         Returns
         -------
         Angles: ndarray
@@ -2060,6 +2099,10 @@ class DataProcessing:
         else:
             _,varG = DataProcessing.varianceEstimation(gyrcalib)
             var = np.asarray([varG[0]**2,varG[1]**2,varG[2]**2]).T 
+
+        if type(low_pass) != type(None):
+            acc = DataProcessing.low_pass_filter(acc,low_pass)
+            mag = DataProcessing.low_pass_filter(mag,low_pass)
 
         # Acquisition variables
         AccF     = np.zeros((3,acqSize))
