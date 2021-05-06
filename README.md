@@ -51,8 +51,8 @@ pyjamalib (0.x.x, /path/to/pyjamalib)
 # Examples
 -----------
 
-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb)   Lokomat - Example of using the library using data extracted using JAMA.   
-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_total_capture_example.ipynb) Total capture dataset - Example of using the library using data extracted using Vicon and Xsens. 
+- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb)    Example of using the library using data extracted using JAMA.   
+- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_total_capture_example.ipynb) Example of using the library using data extracted using Vicon and Xsens. 
 
 # Contributing
 
