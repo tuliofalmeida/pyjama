@@ -69,10 +69,6 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 - Abner Cardoso - [GitHub](https://github.com/abnr) - [Google Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
 - André Dantas - [GitHub](https://github.com/lordcobisco) - [Google Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
 
-[![scholar](https://img.shields.io/endpoint?url=https://www.clipartkey.com/mpngs/m/132-1327722_google-scholar-logo-google-scholar-png.png)](https://github.com/tuliofalmeida/pyjama/stargazers)
-
-https://img.shields.io/endpoint?url=<URL>&style<STYLE>
-
 # Publications
 
 The publications related to this project are still in the process of being published. If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
