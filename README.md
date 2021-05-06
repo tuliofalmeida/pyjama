@@ -6,7 +6,7 @@
 [![last-commit](https://img.shields.io/github/last-commit/tuliofalmeida/pyjama)](https://github.com/tuliofalmeida/pyjama/commits/main)
 [![downloads](https://img.shields.io/pypi/dm/pyjamalib)](https://pypi.org/project/pyjamalib/)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/tuliofalmeida/pyjama)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb) 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_JAMA_exemple.ipynb) 
 [![stars](https://img.shields.io/github/stars/tuliofalmeida?style=social)](https://github.com/tuliofalmeida/pyjama/stargazers)
 
 # PyJama - Python for Joint Angle Measurement Acquisition
@@ -51,7 +51,7 @@ pyjamalib (0.x.x, /path/to/pyjamalib)
 # Examples
 -----------
 
-- Example of using the library using data extracted using JAMA. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_Lokomat_exemple.ipynb)       
+- Example of using the library using data extracted using JAMA. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_JAMA_exemple.ipynb)       
 - Example of using the library using data extracted using Vicon and Xsens. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_total_capture_example.ipynb) 
 
 # Contributing
