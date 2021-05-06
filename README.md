@@ -8,7 +8,6 @@
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/tuliofalmeida/pyjama)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_JAMA_exemple.ipynb) 
 [![stars](https://img.shields.io/github/stars/tuliofalmeida?style=social)](https://github.com/tuliofalmeida/pyjama/stargazers)
-
 # PyJama - Python for Joint Angle Measurement Acquisition
 
 ---------------------------------------------------------
@@ -69,6 +68,10 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 - Tulio Almeida - [GitHub](https://github.com/tuliofalmeida) - [Google Scholar](https://scholar.google.com/citations?user=kkOy-JkAAAAJ&hl=pt-BR)
 - Abner Cardoso - [GitHub](https://github.com/abnr) - [Google Scholar](https://scholar.google.com.br/citations?user=0dTid9EAAAAJ&hl=en)
 - André Dantas - [GitHub](https://github.com/lordcobisco) - [Google Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
+
+[![scholar](https://img.shields.io/endpoint?url=https://www.clipartkey.com/mpngs/m/132-1327722_google-scholar-logo-google-scholar-png.png)](https://github.com/tuliofalmeida/pyjama/stargazers)
+
+https://img.shields.io/endpoint?url=<URL>&style<STYLE>
 
 # Publications
 
