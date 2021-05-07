@@ -22,7 +22,7 @@ PyJama is a friendly python library for analyzing human kinematics data. Aimed a
 - [Development Team](#Development-Team)  
 - [Publications](#Publications)
 - [Credits](#Credits)   
-- 
+
 # Installation
 --------------
 
