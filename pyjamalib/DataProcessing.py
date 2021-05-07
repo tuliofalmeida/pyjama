@@ -40,7 +40,7 @@ class DataProcessing:
         self.accF_Length = 13
         self.i = 0
 
-    def toDataframe(data,data_calib,filter=.04,freq=75,dt=1/75,alpha=.01,beta=.05,beta_mag=.9,beta_mag2=.01,conj=True):
+    def toDataframe(data,data_calib,low_pass=.1,freq=75,dt=1/75,alpha=.01,beta=.05,beta_mag=.9,beta_mag2=.01,conj=True,gyr_filt_cf=.1,gyr_filt_k=.05):
         """This function receives the data from an ESP32 
         performs the data calibration and applies all filters. 
         After all manipulations the results are saved to a
@@ -53,7 +53,7 @@ class DataProcessing:
         data_calib: ndarray
             Esp calibration data returned by 
             'split_raw_data'.
-        filter: float
+        low_pass: float
             Low-pass filter intensity.
         freq: int
             Frequency of data acquisition.
@@ -81,6 +81,12 @@ class DataProcessing:
         conj: bool
             Determine if the quaternion resulted will be
             conjugated or not.
+        gyr_filt_cf: float
+            Low-pass filter intensity specific to Gyroscope
+            data of complementary filter.
+        gyr_filt_k: float
+            Low-pass filter intensity specific to Gyroscope
+            data of kalman filter.
 
         Returns
         -------
@@ -103,9 +109,9 @@ class DataProcessing:
         kalamn_gyr = gyr[0:end_calib]
         
         acc, gyr, mag = pyjamalib.DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
-        accf = DataProcessing.low_pass_filter(acc,filter)
-        gyrf = DataProcessing.low_pass_filter(gyr,filter)
-        magf = DataProcessing.low_pass_filter(mag,filter)
+        accf = DataProcessing.low_pass_filter(acc,low_pass)
+        gyrf = DataProcessing.low_pass_filter(gyr,low_pass)
+        magf = DataProcessing.low_pass_filter(mag,low_pass)
 
         df = pd.DataFrame({'Time':time[:]                                                               ,
                         'Acc_X':acc[:,0]         ,'Acc_Y': acc[:,1]         ,'Acc_Z': acc[:,2]       ,
@@ -130,12 +136,21 @@ class DataProcessing:
         mag_df_f = pyjamalib.DataHandler.csvFloatMerge(df['Mag_X_Filt'],df['Mag_Y_Filt'],df['Mag_Z_Filt'])
 
         Roll, Pitch, Yaw = DataProcessing.get_euler(q=[1,0,0,0],Acc=acc_df_f,Mag=mag_df_f,conj=conj)
-        CF    = DataProcessing.complementaryFilter(Roll,Pitch,Yaw,gyr_df_f[:,0],gyr_df_f[:,1],gyr_df_f[:,2],alpha=.05,dt=dt)
-        CF_GD = DataProcessing.ComplementaryFilterGD(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
-        CF_GN = DataProcessing.ComplementaryFilterGN(acc_df_f,gyr_df_f,mag_df_f,dt=dt,alpha=alpha,beta=beta,conj=conj)
-        Kalman_GD = DataProcessing.KalmanGD(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
-        Kalman_GN = DataProcessing.KalmanGN(acc_df_f,gyr_df_f,mag_df_f,gyrcalib=kalamn_gyr,dt=dt,beta=beta,conj=conj)
-        Madgwick  = DataProcessing.MadgwickAHRS(acc_df,gyr_df,mag_df,freq=freq,beta1=beta_mag,beta2=beta_mag2)
+        CF    = DataProcessing.complementaryFilter(Roll,Pitch,Yaw,
+                                                    DataProcessing.low_pass_filter(gyr_df[:,0],gyr_filt_cf),
+                                                    DataProcessing.low_pass_filter(gyr_df[:,1],gyr_filt_cf),
+                                                    DataProcessing.low_pass_filter(gyr_df[:,2],gyr_filt_cf),
+                                                   alpha=.05,dt=dt)
+        CF_GD = DataProcessing.ComplementaryFilterGD(acc_df, DataProcessing.low_pass_filter(gyr_df,gyr_filt_cf),mag_df,
+                                                     dt=dt,alpha=alpha,beta=beta,conj=conj,low_pass=low_pass)
+        CF_GN = DataProcessing.ComplementaryFilterGN(acc_df,DataProcessing.low_pass_filter(gyr_df,gyr_filt_cf),mag_df,
+                                                     dt=dt,alpha=alpha,beta=beta,conj=conj,low_pass=low_pass)
+        Kalman_GD = DataProcessing.KalmanGD(acc_df,DataProcessing.low_pass_filter(gyr_df,gyr_filt_k),mag_df,gyrcalib=kalamn_gyr,
+                                            dt=dt,beta=beta,conj=conj,low_pass=low_pass)
+        Kalman_GN = DataProcessing.KalmanGN(acc_df,DataProcessing.low_pass_filter(gyr_df,gyr_filt_k),mag_df,gyrcalib=kalamn_gyr,
+                                            dt=dt,beta=beta,conj=conj,low_pass=low_pass)
+        Madgwick  = DataProcessing.MadgwickAHRS(acc_df,gyr_df,mag_df,
+                                                freq=freq,beta1=beta_mag,beta2=beta_mag2)
 
         df['Roll'],df['Pitch'],df['Yaw'] = Roll, Pitch, Yaw
         df['CF_Roll'],df['CF_Pitch'],df['CF_Yaw'] = CF[:,0],CF[:,1],CF[:,2]
