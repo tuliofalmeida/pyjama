@@ -82,10 +82,12 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 - André Dantas - [GitHub](https://github.com/lordcobisco) - [Google Scholar](https://scholar.google.com.br/citations?user=lH6zW30AAAAJ&hl=en)
 
 # Publications
+--------------
 
 The publications related to this project are still in the process of being published. If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
 
 # Credits 
+---------
 
 - [Daniele Comotti](https://github.com/danicomo/9dof-orientation-estimation) GitHub used as a basis for filters
 - [Sebastian Madgwick](https://www.x-io.co.uk/res/doc/madgwick_internal_report.pdf) Reference for the manipulations of quaternions
