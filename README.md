@@ -37,7 +37,7 @@ conda install -c conda-forge pyjamalib
 
 To build PyJama from source, say `python setup.py build`.
 Then, to install PyJama, say `python setup.py install`.
-If all went well, you should be able to execute the demo scripts under `examples/`
+If all went well, you should be able to execute the demo scripts under [examples](#Examples)
 (OS X users should follow the installation guide given below).
 
 Alternatively, you can download or clone the repository and use `pip` to handle dependencies:
