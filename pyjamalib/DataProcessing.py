@@ -107,7 +107,7 @@ class DataProcessing:
         
         end_calib = 5*freq
         kalamn_gyr = gyr[0:end_calib]
-        
+         
         acc, gyr, mag = pyjamalib.DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
         accf = DataProcessing.low_pass_filter(acc,low_pass)
         gyrf = DataProcessing.low_pass_filter(gyr,low_pass)
