@@ -86,6 +86,7 @@ class DataPlot:
         textstr=[]
         top_boxes = np.zeros((len(data),size))
         top_box_max = np.zeros(size)
+        box = False
         
         fig, axs = plt.subplots(size,figsize=(18, 12))
         fig.suptitle(title, fontsize = 28)

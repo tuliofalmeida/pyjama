@@ -41,7 +41,7 @@ class DataProcessing:
         self.i = 0
 
     def toDataframe(data,data_calib,low_pass=.1,freq=75,dt=1/75,alpha=.01,beta=.05,beta_mag=.9,beta_mag2=.01,conj=True,gyr_filt_cf=.1,gyr_filt_k=.05):
-        """This function receives the data from an ESP32 
+        """This function receives the data from JAMA 
         performs the data calibration and applies all filters. 
         After all manipulations the results are saved to a
         pandas datafarme.
@@ -99,7 +99,8 @@ class DataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida/pyjama    
+        https://github.com/tuliofalmeida/pyjama
+        https://github.com/tuliofalmeida/jama     
         """         
         time,acc,gyr,mag= pyjamalib.DataHandler.get_imu_data(data)
         time_calib,acc_calib,gyr_calib,mag_calib = pyjamalib.DataHandler.get_imu_data(data_calib)
@@ -180,11 +181,11 @@ class DataProcessing:
         Parameters
         ----------
         df_first_joint: pandas dataframe
-            Dataframe with ESP32 data positioned 
+            Dataframe with JAMA data positioned 
             above the target joint returned by the 
             'toDataFrame' function.
         df_second_joint: pandas dataframe
-            Dataframe with ESP32 data positioned 
+            Dataframe with JAMA data positioned 
             below the target joint returned by the 
             'toDataFrame' function.
         patternRoll: bool
@@ -239,7 +240,8 @@ class DataProcessing:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida/pyjama    
+        https://github.com/tuliofalmeida/pyjama 
+        https://github.com/tuliofalmeida/jama    
         """         
         if end == None:
             end = len(df_first_joint['Time'])
@@ -2231,7 +2233,8 @@ class DataProcessing:
         Returns
         -------
         Quaternion: ndarray
-           Fusioned data using the Madgwick filter.
+           Fusioned data using the Madgwick filter
+           in radians/s.
 
         See Also
         --------
