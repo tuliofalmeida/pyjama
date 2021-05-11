@@ -18,7 +18,9 @@ class DataPlot:
     """
     def pyjama_subplot(data,time,box_data=None,title='Title',x_label='Time (s)',
                     y_label='Y Label',data_name=None,labels=None,box_text_a=None,
-                    box_text_b=None,h_box=None,colors=None,grid=True,ret=False):
+                    box_text_b=None,h_box=None,colors=None,grid=True,fig_size=(18,12),
+                    title_size=28,subtitle_size=20,box_size=14,legend_size=14,
+                    label_size=20,dpi=300,save_fig=False,ret=False):
         
         """Plot the data according to the size of 
         the array in subplots. It allows to plot a box 
@@ -60,12 +62,32 @@ class DataPlot:
             Name of the colors that you want the 
             data to be plotted (in order), 
             remembering that they must be names 
-            supported by matplotlib
+            supported by matplotlib.
         grid: bool
-            Plot grids in each subplot        
+            Plot grids in each subplot
+        fig_size: tuple
+            Image size values (x, y).
+        title_size: int
+            Title font size.
+        subtitle_size: int
+            Subtitle font size.
+        box_size: int
+            Box font size.
+        legend_size: int
+            Legend font size.
+        label_size: int
+            Axis font size.
+        dpi: int
+            Dots per inch, enhances the details 
+            of the image.  
+        save_fig: bool
+            If true, the plot will be saved in 
+            content or script folder with a 
+            resolution of 300 dpi as default.    
         ret: bool
             If true, the function will return to 
             the fig for a variable.
+
 
         Returns
         -------
@@ -81,15 +103,15 @@ class DataPlot:
         For more information see:
         https://github.com/tuliofalmeida/pyjama    
         """ 
-        size = data[0].shape[1] 
+        size = data[0].shape[1]
         plt.tight_layout()
         textstr=[]
         top_boxes = np.zeros((len(data),size))
         top_box_max = np.zeros(size)
         box = False
         
-        fig, axs = plt.subplots(size,figsize=(18, 12))
-        fig.suptitle(title, fontsize = 28)
+        fig, axs = plt.subplots(size,figsize=fig_size)
+        fig.suptitle(title, fontsize = title_size)
 
         if type(data_name) == type(None):
             data_name = []
@@ -125,22 +147,25 @@ class DataPlot:
         for ç in range(size):
             for i in range(len(data)):
                 axs[ç].plot(time, data[i][:,ç],label=labels[i],color=colors[i])
-                axs[ç].set_title(data_name[ç], fontsize=20) 
+                axs[ç].set_title(data_name[ç], fontsize=subtitle_size) 
                 if box:
-                    axs[ç].text(-2.7, top_box_max[ç]+(top_box_max[ç]*h_box), textstr[ç], fontsize=14,
+                    axs[ç].text(-2.7, top_box_max[ç]+(top_box_max[ç]*h_box), textstr[ç], fontsize=box_size,
                     verticalalignment='top', bbox=props,horizontalalignment='left')       
 
         for ax in axs.flat:
             ax.set(xlabel=x_label, ylabel=y_label)
-            ax.yaxis.label.set_size(20)
-            ax.xaxis.label.set_size(20)
+            ax.yaxis.label.set_size(label_size)
+            ax.xaxis.label.set_size(label_size)
             ax.label_outer()
-            ax.legend(loc="upper right",fontsize=14)
+            ax.legend(loc="upper right",fontsize=legend_size)
             if grid:
                 ax.grid()
             
-
         plt.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.9,wspace=0.4,hspace=0.4)
+        
+        if save_fig:
+            name_fig = title + '.png'
+            plt.savefig(name_fig, dpi=dpi)
 
         if ret:
             return fig
