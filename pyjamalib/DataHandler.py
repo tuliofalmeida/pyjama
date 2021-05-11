@@ -85,13 +85,10 @@ class DataHandler:
         list_data = []
         for i in temp:
             x = i.split("'")[-1]
-            #print(x)
             toF = x.split(',')
-            #print(toF)
             listaEspTemp = []
             for i in toF:
-                if (i != ']' and i != ''): #and i != ',' and i != ' ' and i != ''):
-                    #print('x: ',x, 'i: ',i)
+                if (i != ']' and i != ''):
                     listaEspTemp.append(float(i))
 
             list_data.append(listaEspTemp)
