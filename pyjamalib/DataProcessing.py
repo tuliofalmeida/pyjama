@@ -40,7 +40,7 @@ class DataProcessing:
         self.accF_Length = 13
         self.i = 0
 
-    def toDataframe(data,data_calib,low_pass=.1,freq=75,dt=1/75,alpha=.01,beta=.05,beta_mag=.9,beta_mag2=.01,conj=True,gyr_filt_cf=.1,gyr_filt_k=.05):
+    def toDataframe(data,data_calib,low_pass=.1,freq=75,dt=1/75,alpha=.01,beta=.05,beta_mad=.9,beta_mad2=.01,conj=True,gyr_filt_cf=.1,gyr_filt_k=.05):
         """This function receives the data from JAMA 
         performs the data calibration and applies all filters. 
         After all manipulations the results are saved to a
@@ -66,13 +66,13 @@ class DataProcessing:
             Factor to improve the effectiveness of 
             integrating the accelerometer with gyroscope.
             Must be determined between 0 and 1.
-        beta_mag: float
+        beta_mad: float
            There is a tradeoff in the beta parameter 
            between accuracy and response speed. Must
            be determined according with the Gyroscope
            error. Used for the first quaternion 
            orientation. For MadgwickAHRS filte.
-        beta_mag2: float
+        beta_mad2: float
            There is a tradeoff in the beta parameter 
            between accuracy and response speed. Must
            be determined according with the Gyroscope
@@ -141,7 +141,7 @@ class DataProcessing:
                                                     DataProcessing.low_pass_filter(gyr_df[:,0],gyr_filt_cf),
                                                     DataProcessing.low_pass_filter(gyr_df[:,1],gyr_filt_cf),
                                                     DataProcessing.low_pass_filter(gyr_df[:,2],gyr_filt_cf),
-                                                   alpha=.05,dt=dt)
+                                                   alpha=alpha,dt=dt)
         CF_GD = DataProcessing.ComplementaryFilterGD(acc_df, DataProcessing.low_pass_filter(gyr_df,gyr_filt_cf),mag_df,
                                                      dt=dt,alpha=alpha,beta=beta,conj=conj,low_pass=low_pass)
         CF_GN = DataProcessing.ComplementaryFilterGN(acc_df,DataProcessing.low_pass_filter(gyr_df,gyr_filt_cf),mag_df,
@@ -151,7 +151,7 @@ class DataProcessing:
         Kalman_GN = DataProcessing.KalmanGN(acc_df,DataProcessing.low_pass_filter(gyr_df,gyr_filt_k),mag_df,gyrcalib=kalamn_gyr,
                                             dt=dt,beta=beta,conj=conj,low_pass=low_pass)
         Madgwick  = DataProcessing.MadgwickAHRS(acc_df,gyr_df,mag_df,
-                                                freq=freq,beta1=beta_mag,beta2=beta_mag2)
+                                                freq=freq,beta1=beta_mad,beta2=beta_mad2)
 
         df['Roll'],df['Pitch'],df['Yaw'] = Roll, Pitch, Yaw
         df['CF_Roll'],df['CF_Pitch'],df['CF_Yaw'] = CF[:,0],CF[:,1],CF[:,2]
@@ -163,7 +163,7 @@ class DataProcessing:
 
         return df
 
-    def joint_measures(df_first_joint,df_second_joint,patternRoll=False,patternPitch=False,patternYaw=False,init=0,end=None,freq=75,threshold=None,cycle=2,bias=0,poly_degree=9,CI=1.96):
+    def joint_measures(df_first_joint,df_second_joint,patternRoll=False,patternPitch=False,patternYaw=False,init=0,end=None,freq=75,threshold=None,cycle=2,bias=0,poly_degree=9,CI=1.96,positive=True):
         """This function is used to calculate the angle 
         of a given joint. If the movement performed has 
         a clear pattern, it is possible to extract it by 
@@ -264,8 +264,9 @@ class DataProcessing:
         row_names = df_first_joint.columns.tolist()[19:]
         for ç in zip(column_name,row_names):            
                 df[ç[0]] = 180-(df_first_joint[ç[1]]+df_second_joint[ç[1]])
-                df[ç[0]] = (df[ç[0]] + abs(min(df[ç[0]])))*-1
-                df[ç[0]] = df[ç[0]] + abs(min(df[ç[0]]))
+                if positive:
+                    df[ç[0]] = (df[ç[0]] + abs(min(df[ç[0]])))*-1
+                    df[ç[0]] = df[ç[0]] + abs(min(df[ç[0]]))
                 
         thre = np.zeros((len(column_name),1))      
         if type(threshold) == type(None):
