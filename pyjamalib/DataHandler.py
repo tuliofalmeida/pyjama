@@ -230,7 +230,7 @@ class DataHandler:
 
         return acc,gyr,mag
 
-    def saveCSV(time,acc,gyr,mag, filename = 'Data.csv', path = '/content/drive/MyDrive/Dissertação/Dados/CSV/'):
+    def saveCSV(time,acc,gyr,mag, filename = 'Data.csv', path = '/content/'):
         """Saves the accelerometer, gyroscope, magnetometer 
         and time vector data to a csv file.
 
