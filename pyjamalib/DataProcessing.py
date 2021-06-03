@@ -652,7 +652,7 @@ class DataProcessing:
         quat.append(np.asarray(q))
         
         for i in range(len(Acc)):
-            quat.append(DataProcessing.GaussNewtonMethod(quat[i-1],Acc[i],Mag[i]))
+            quat.append(DataProcessing.GaussNewton(quat[i-1],Acc[i],Mag[i]))
             if conj == True:
                 euler.append(DataProcessing.GetAnglesFromQuaternion(DataProcessing.quaternConj(quat[i])))
             else:
@@ -1110,7 +1110,7 @@ class DataProcessing:
 
         #https://github.com/danicomo/9dof-orientation-estimation
 
-    def ComputeJacobian(q,Acc,Mag):
+    def computeJacobian(q,Acc,Mag):
         """Compute the Jacobian matrix using
            inital orientation in quaternion and
            Accelerometer and Magnetometer data.
@@ -1190,7 +1190,7 @@ class DataProcessing:
         
         return -np.asarray(J)
 
-    def ComputeM_Matrix(q):
+    def computeM_Matrix(q):
         """Compute the rotation transformation 
            matrix based on quaternions.
 
@@ -1238,7 +1238,7 @@ class DataProcessing:
 
         return np.asarray(M)
 
-    def GaussNewtonMethod(q,Acc,Mag):
+    def GaussNewton(q,Acc,Mag):
         """Estimates the quaternion orientation
            from the accelerometer and magnetometer 
            data based on the Guass-Newton optimizer.
@@ -1282,9 +1282,9 @@ class DataProcessing:
             bMagn = bMagn/np.linalg.norm(bMagn)
             # End magnetometer compensation
             
-            J_nk = DataProcessing.ComputeJacobian(q,Acc,Mag)
+            J_nk = DataProcessing.computeJacobian(q,Acc,Mag)
 
-            M = DataProcessing.ComputeM_Matrix(q)
+            M = DataProcessing.computeM_Matrix(q)
 
             y_e=np.concatenate((np.asarray([0, 0, 1]).T,bMagn), axis=0)
             y_b=np.concatenate((Acc,Mag), axis=0)
@@ -1690,7 +1690,7 @@ class DataProcessing:
         """        
         AccF = acc/np.linalg.norm(acc)
         MagnF = mag/np.linalg.norm(mag)
-        qOsserv = DataProcessing.GaussNewtonMethod(self.qFilt_1,AccF,MagnF)
+        qOsserv = DataProcessing.GaussNewton(self.qFilt_1,AccF,MagnF)
         qOsserv = beta*qOsserv/np.linalg.norm(qOsserv)
         if self.i <= (self.accF_Length+6):
             # Filtered values initialized with observed values
@@ -2177,7 +2177,7 @@ class DataProcessing:
             # Observation Computing
             # Gauss Newton step 
             
-            qOsserv[:,i] = DataProcessing.GaussNewtonMethod(qOsserv[:,i-1],AccF[:,i],MagnF[:,i])
+            qOsserv[:,i] = DataProcessing.GaussNewton(qOsserv[:,i-1],AccF[:,i],MagnF[:,i])
             qOsserv[:,i] = beta*qOsserv[:,i]/np.linalg.norm(qOsserv[:,i])
             
             # End Observation Computing
@@ -2486,7 +2486,7 @@ class DataProcessing:
            data of joint angle.
         time: pandas dataframe
            Column of a pandas data frame with the 
-           data of time stamp.
+           time stamp.
         threshold: float
             Point at which the data moves between 
             movements. Example: flexion and extension.
@@ -2534,8 +2534,8 @@ class DataProcessing:
             data = jointAngle[zero_crossings[0+ciclo]:zero_crossings[mCicloqtd+ciclo]]
             rom.append(data)
 
-            for j in range(len(tempo)):
-                Time_Data_Array.append((tempo[j],data[j]));
+            for ç in range(len(tempo)):
+                Time_Data_Array.append((tempo[ç],data[ç]));
     
             if plot == True:
                 plt.plot(tempo, DataProcessing.low_pass_filter(jointAngle[zero_crossings[0+ciclo]:zero_crossings[mCicloqtd+ciclo]]));

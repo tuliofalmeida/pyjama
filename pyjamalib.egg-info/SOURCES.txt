@@ -2,8 +2,8 @@ README.md
 setup.cfg
 setup.py
 pyjamalib/DataHandler.py
-pyjamalib/DataPlot.py
 pyjamalib/DataProcessing.py
+pyjamalib/DataVisualisation.py
 pyjamalib/__init__.py
 pyjamalib.egg-info/PKG-INFO
 pyjamalib.egg-info/SOURCES.txt

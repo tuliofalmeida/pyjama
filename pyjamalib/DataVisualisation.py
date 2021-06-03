@@ -5,7 +5,7 @@ import pandas as pd
 import pyjamalib
 import scipy.signal,scipy.stats
 
-class DataPlot:
+class DataVisualisation:
     """Integrates all functions to perform data 
     processing to calculate the joint angle.
 

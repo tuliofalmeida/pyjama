@@ -4,31 +4,30 @@ import pandas as pd
 import csv
 
 class DataHandler:
-    def import_raw_data (pathData, pathTime):
+    def import_raw_data (pathData):
         """Reads the raw data and removes extra characters.
-        Input data from the ESP's.
+        Input data from JAMA.
 
         Parameters
         ----------
-        pathData : .txt file with all data in strings
-        pathTime : .txt file with all timestamp in strings
+        pathData : str
+            A path of the JAMA output.
 
         Returns
         -------
         data: data in list
             List with all data without extra characters.
-        time_stamp: data in list
-            List with all time stamp data without extra characters.
+            Each JAMA device will be alocate in one row.
 
         See Also
         --------
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida/pyjama    
+        https://github.com/tuliofalmeida/pyjama
+        https://github.com/tuliofalmeida/jama    
         """     
         data = open(pathData,"r").read()
-        tempo = open(pathTime,"r")
 
         var = data.split(" ")
         newString = ""
@@ -56,12 +55,11 @@ class DataHandler:
             newString = newString+i
 
         data = newString.split('[')
-        time_stamp = tempo.read().split('[')
 
-        return data,time_stamp
+        return data #,time_stamp
 
     def split_raw_data(esp_data):
-        """Split the raw data for each ESP32.
+        """Split the raw data for each JAMA.
         Input data processed by 'import_raw_data'.
 
         Parameters
@@ -71,16 +69,17 @@ class DataHandler:
         Returns
         -------
         list_data : data in list
-            List with all separated by each ESP32 in different lines.
+            List with all separated by each JAMA in different lines.
 
         See Also
         --------
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida/pyjama    
+        https://github.com/tuliofalmeida/pyjama
+        https://github.com/tuliofalmeida/jama      
         """  
-
+        
         temp = (esp_data.split(';'))
         list_data = []
         for i in temp:
@@ -95,7 +94,7 @@ class DataHandler:
         return list_data
 
     def get_imu_data(dataSplited,IsGyrInRad = True):
-        """Split the raw data of the specific ESP's in arrays.
+        """Split the raw data of the specific JAMA device in arrays.
 
         Parameters
         ----------
@@ -123,7 +122,8 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida/pyjama    
+        https://github.com/tuliofalmeida/pyjama
+        https://github.com/tuliofalmeida/jama        
         """  
         time = []
         acc = []
@@ -142,7 +142,7 @@ class DataHandler:
         else:
             return np.asarray(time),np.asarray(acc),np.asarray(gyr),np.asarray(mag)
 
-    def calibration_imu(acc,gyr,mag,mag_calib,tempoBasal = 5, freq = 75):
+    def calibration_imu(acc,gyr,mag,mag_calib,tempoBasal=5,freq=75,ref='Y'):
         """Calibrate the data according to the location's magnetic field. 
         This procedure is 'optional' and magnetometer data is expected in 
         which the sensor is moved in all directions in the same environment 
@@ -163,6 +163,9 @@ class DataHandler:
             be calibrated is completely static.
         freq: int
             Frequency of data acquisition.
+        ref: str
+            Accelerometer axis that is aligned with gravity. 
+            Receives X, Y, or Z as input parameter
 
         Returns
         -------
@@ -178,13 +181,23 @@ class DataHandler:
         Developed by T.F Almeida in 25/03/2021
 
         For more information see:
-        https://github.com/tuliofalmeida/pyjama    
+        https://github.com/tuliofalmeida/pyjama
+        https://github.com/tuliofalmeida/jama       
         """  
         tempo = tempoBasal * freq
-        #ACC  
-        acc_mean_x = np.mean(acc[0:(tempo)][:,0])
-        acc_mean_y = np.mean(acc[0:(tempo)][:,1])-1 #MUDAR A PORRA DO Y PARA O Z (+1)
-        acc_mean_z = np.mean(acc[0:(tempo)][:,2])   #-1
+        #ACC 
+        if ref == 'Y':
+            acc_mean_x = np.mean(acc[0:(tempo)][:,0])
+            acc_mean_y = np.mean(acc[0:(tempo)][:,1])-1
+            acc_mean_z = np.mean(acc[0:(tempo)][:,2])
+        elif ref == 'Z':
+            acc_mean_x = np.mean(acc[0:(tempo)][:,0])
+            acc_mean_y = np.mean(acc[0:(tempo)][:,1])
+            acc_mean_z = np.mean(acc[0:(tempo)][:,2])-1
+        else:
+            acc_mean_x = np.mean(acc[0:(tempo)][:,0])-1
+            acc_mean_y = np.mean(acc[0:(tempo)][:,1])
+            acc_mean_z = np.mean(acc[0:(tempo)][:,2])
 
         for i in range(len(acc)):
             acc[i][0] = acc[i][0] - acc_mean_x
