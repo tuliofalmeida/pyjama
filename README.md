@@ -62,7 +62,7 @@ pyjamalib (0.x.x, /path/to/pyjamalib)
 -----------
 
 - Example of using the library using data extracted using JAMA. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_JAMA_exemple.ipynb)      
-- Example of using the library using data extracted using Vicon and Xsens. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_total_capture_example.ipynb) 
+- Example of using the library using data extracted using Vicon and Xsens. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_Validation.ipynb) 
 
 # Contributing
 --------------
