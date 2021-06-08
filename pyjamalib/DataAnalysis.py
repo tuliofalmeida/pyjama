@@ -187,8 +187,8 @@ class DataAnalysis:
             return df
 
     def joint_measures(df_first_joint,df_second_joint,patternRoll=False,patternPitch=False,patternYaw=False,
-                    init=0,end=None,freq=75,threshold=None,cycle=2,bias=0,poly_degree=9,CI=1.96,absolute=True,
-                    euler=True,cf=True,cf_gd=True,cf_gn=True,k_gd=True,k_gn=True,mad=True):
+                       init=0,end=None,freq=75,threshold=None,cycle=2,bias=0,poly_degree=9,CI=1.96,absolute=True,
+                       euler=True,cf=True,cf_gd=True,cf_gn=True,k_gd=True,k_gn=True,mad=True):
             """This function is used to calculate the angle 
             of a given joint. If the movement performed has 
             a clear pattern, it is possible to extract it by 
@@ -303,16 +303,16 @@ class DataAnalysis:
 
             if patternRoll == False: 
                 df = df.drop(['Flex/Ext','Flex/Ext_CF','Flex/Ext_CF_GD',
-                                'Flex/Ext_CF_GN','Flex/Ext_Kalman_GD',
-                                'Flex/Ext_Kalman_GN','Flex/Ext_Madgwick'], axis=1)                
+                            'Flex/Ext_CF_GN','Flex/Ext_Kalman_GD',
+                            'Flex/Ext_Kalman_GN','Flex/Ext_Madgwick'], axis=1)                
             if patternPitch == False: 
                 df = df.drop(['Adu/Abd','Adu/Abd_CF','Adu/Abd_CF_GD',
-                                'Adu/Abd_CF_GN','Adu/Abd_Kalman_GD',
-                                'Adu/Abd_Kalman_GN','Adu/Abd_Madgwick'], axis=1)   
+                            'Adu/Abd_CF_GN','Adu/Abd_Kalman_GD',
+                            'Adu/Abd_Kalman_GN','Adu/Abd_Madgwick'], axis=1)   
             if patternYaw == False: 
                 df = df.drop(['Int/Ext_Rot','Int/Ext_Rot_CF','Int/Ext_Rot_CF_GD',
-                                'Int/Ext_Rot_CF_GN','Int/Ext_Rot_Kalman_GD',
-                                'Int/Ext_Rot_Kalman_GN','Int/Ext_Rot_Madgwick'], axis=1)     
+                            'Int/Ext_Rot_CF_GN','Int/Ext_Rot_Kalman_GD',
+                            'Int/Ext_Rot_Kalman_GN','Int/Ext_Rot_Madgwick'], axis=1)     
 
             if patternRoll:
                 if euler == False:
@@ -362,6 +362,29 @@ class DataAnalysis:
 
             column_name = df.columns.tolist()[1:]
             row_names = df_first_joint.columns.tolist()[19:]
+            cut_r = []
+            cut_p = []
+            cut_y = []
+            for i in range(len(row_names)):
+                if patternRoll == False:
+                    if '_Roll' in row_names[i]:
+                        cut_r.append(row_names[i])
+                if patternPitch == False:
+                    if '_Pitch' in row_names[i]:
+                        cut_p.append(row_names[i])
+                if patternYaw == False:
+                    if '_Yaw' in row_names[i]:
+                        cut_y.append(row_names[i])
+            if len(cut_r) != 0:
+                for i in range(len(cut_r)):
+                    row_names.remove(cut_r[i])
+            if len(cut_p) != 0:
+                for i in range(len(cut_p)):
+                    row_names.remove(cut_p[i])
+            if len(cut_y) != 0:
+                for i in range(len(cut_y)):
+                    row_names.remove(cut_y[i])
+                        
             for ç in zip(column_name,row_names):            
                     df[ç[0]] = 180-(df_first_joint[ç[1]]+df_second_joint[ç[1]])
                     if absolute:
@@ -371,12 +394,11 @@ class DataAnalysis:
             thre = np.zeros((len(column_name),1))      
             if type(threshold) == type(None):
                 for i in range(len(thre)):
-                        thre[i] = np.mean(df[column_name[i]])
+                    thre[i] = np.mean(df[column_name[i]])
                 thre_list = list(zip(thre,column_name))
             else:
                 for i in range(len(thre)):
-                        thre[i] = threshold
-            print(thre_list) 
+                    thre[i] = threshold
             index = []
             Rom = []
             Mean = []
@@ -783,7 +805,7 @@ class DataAnalysis:
                             'Min Est':MinEst,
                             'Max Est':MaxEst})
 
-            return df ,df_metrics 
+            return df ,df_metrics   
      
     def joint_rom(df):
         """ Calculate the max range of motion (ROM) 
