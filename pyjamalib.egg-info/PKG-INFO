@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyjamalib
-Version: 0.6.0
+Version: 0.6.6
 Summary: A library for analyze joint angles from IMU data
 Home-page: https://github.com/tuliofalmeida/pyjama
 Author: Túlio F. Almeida

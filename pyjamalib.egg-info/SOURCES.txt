@@ -1,6 +1,7 @@
 README.md
 setup.cfg
 setup.py
+pyjamalib/DataAnalysis.py
 pyjamalib/DataHandler.py
 pyjamalib/DataProcessing.py
 pyjamalib/DataVisualisation.py

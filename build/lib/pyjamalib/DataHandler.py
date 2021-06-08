@@ -79,7 +79,7 @@ class DataHandler:
         https://github.com/tuliofalmeida/pyjama
         https://github.com/tuliofalmeida/jama      
         """  
-
+        
         temp = (esp_data.split(';'))
         list_data = []
         for i in temp:
@@ -230,7 +230,7 @@ class DataHandler:
 
         return acc,gyr,mag
 
-    def saveCSV(time,acc,gyr,mag, filename = 'Data.csv', path = '/content/drive/MyDrive/Dissertação/Dados/CSV/'):
+    def saveCSV(time,acc,gyr,mag, filename = 'Data.csv', path = '/content/'):
         """Saves the accelerometer, gyroscope, magnetometer 
         and time vector data to a csv file.
 
