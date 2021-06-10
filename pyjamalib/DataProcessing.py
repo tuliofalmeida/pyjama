@@ -1571,15 +1571,18 @@ class DataProcessing:
         y = scipy.signal.lfilter(b, a, data)
         return y
 
-    def low_pass_filter(IN, par = 0.1):
-        """Low-pass filter
+    def low_pass_filter(data, T = 0.1):
+        """Low-pass filter, T is the itensity of the
+        filter. He must be implemented thinking in 1/freq
+        and the analysis is visual,the closer to 0 the more 
+        filtered the data will be.
 
         Parameters
         ----------
-        IN: ndarray
+        data: ndarray
            Input data.
 
-        par: float
+        T: float
            Filter intensity
 
         Returns
@@ -1595,11 +1598,11 @@ class DataProcessing:
         https://github.com/tuliofalmeida/pyjama
         """
         out = []
-        for i in range(len(IN)):
+        for i in range(len(data)):
             if i == 0:
-                out.append(IN[i])
+                out.append(data[i])
             else:
-                out.append(out[i-1] + par*(IN[i] - out[i-1]))
+                out.append(out[i-1] + T*(data[i] - out[i-1]))
 
         return np.asarray(out)  
 
@@ -2469,7 +2472,9 @@ class DataProcessing:
 
         return mean,std
 
-    def pattern_extraction(jointAngle,time,threshold,cycle=2,df=True,plot=False,bias=0):
+    def pattern_extraction(jointAngle,time,threshold,cycle=2,df=True,plot=False,bias=0,
+                           save=False, save_name='Data',fsize=30, title='Pattern Extraction',
+                           yaxis='Angle (°)',xaxis='Cycle (%)'):
         """ Find and extract patterns from the data. 
            Able to plot all overlapping pattern data 
            for easy understanding. This function was 
@@ -2501,6 +2506,18 @@ class DataProcessing:
             Determines if the function will return the plot.
         bias: int optional
             Value to compensate the cycle adjust.
+        save: bool
+            If true save a fig as pdf
+        save_name: str
+            The fig name.
+        fsize: int
+            Font size.
+        title: str
+            Title name.
+        yaxis: str
+            Y axis name.
+        xaxis: str
+            X axis name.
 
         Returns
         -------
@@ -2541,15 +2558,20 @@ class DataProcessing:
                 plt.plot(tempo, DataProcessing.low_pass_filter(jointAngle[zero_crossings[0+ciclo]:zero_crossings[mCicloqtd+ciclo]]));
 
         if plot == True:
-            plt.title('Pattern Extraction',fontsize = 30);
-            plt.ylabel('Angle (°)',fontsize = 30);
-            plt.xlabel('Cycle (%)',fontsize = 30);
+            plt.title(title,fontsize = fsize);
+            plt.ylabel(yaxis,fontsize = fsize);
+            plt.xlabel(xaxis,fontsize = fsize);
             plt.grid();
+            if save == True:
+                plt.savefig(save_name + '.pdf')
             plt.show();
 
         return np.asarray(Time_Data_Array),np.asarray(rom)
 
-    def patternCI(all_x, all_y,poly_degree = 1,CI = 1.96,df = True,plot=False,figuresize=(12,9),title='Trajectory CI-95',x_label='Cycle (%)',y_label='Angle (°)',label1='Data 1',label2='Data 2',label3='CI'):
+    def patternCI(all_x, all_y,poly_degree = 1,CI = 1.96,df = True,plot=False,
+                  figuresize=(12,9),title='Trajectory CI-95',x_label='Cycle (%)',
+                  y_label='Angle (°)',label1='Data 1',label2='Data 2',label3='CI',
+                  save=False, save_name='Data', fsize=30, lsize=20):
         """Calculates the confidence interval of the 
            patterns extracted by the 'pattern_extraction' 
            function.
@@ -2586,7 +2608,14 @@ class DataProcessing:
            Label for data 2.   
         label3: str
            Label for CI.           
-           
+        save: bool
+            If true save a fig as pdf
+        save_name: str
+            The fig name.
+        fsize: int
+            Font size.
+        lsize: int
+            Labels font size.              
         Returns
         -------
         statistics: ndarray
@@ -2632,11 +2661,13 @@ class DataProcessing:
             plt.plot(all_x,all_y,'.',color= 'black');
             plt.plot(all_x,yest,'.',color= 'red');
             plt.fill_between(DataProcessing.low_pass_filter(np.sort(all_x)),yupsorted, ydownsorted,color='r',alpha=.1);
-            plt.title(title).set_size(30);
-            plt.xlabel(x_label).set_size(30);
-            plt.ylabel(y_label).set_size(30);
-            plt.legend([label1, label2, label3], loc='upper right',fontsize = 20)
+            plt.title(title).set_size(fsize);
+            plt.xlabel(x_label).set_size(fsize);
+            plt.ylabel(y_label).set_size(fsize);
+            plt.legend([label1, label2, label3], loc='upper right',fontsize = lsize)
             plt.grid();
+            if save == True:
+                plt.savefig(save_name + '.pdf')
             plt.show();
 
         var = stdev**2
@@ -2644,7 +2675,10 @@ class DataProcessing:
 
         return statistics
     
-    def data_comparison(Time_Data_Array,statistics_1,statistics_2, plot = True, label1 = 'Data 1', label2 = 'Data 2'):
+    def data_comparison(Time_Data_Array,statistics_1,statistics_2, plot=True, 
+                        label1='Data 1',label2='Data 2', save=False,
+                        save_name = 'Data', fsize = 30, lsize = 20,
+                        title= 'Data Comparison', yaxis='Angle (°)', xaxis='Cycle (%)'):
          """This function is made for visual
          comparison of two data, using the data 
          average. Using the output of the 
@@ -2665,7 +2699,21 @@ class DataProcessing:
            Label for data 1.
          label1: str
            Label for data 2.    
-            
+        save: bool
+            If true save a fig as pdf
+        save_name: str
+            The fig name.
+        fsize: int
+            Font size.
+        lsize: int
+            Labels font size.    
+        title: str
+            Title name.
+        yaxis: str
+            Y axis name.
+        xaxis: str
+            X axis name.
+                                   
          Returns
          -------
          plot: if True
@@ -2689,11 +2737,13 @@ class DataProcessing:
                plt.figure(figsize=(12,9))
                plt.plot(Time_Data_Array[:,0],poly1,'.',color='black', markersize=12)
                plt.plot(Time_Data_Array[:,0],poly2,'.',color='red', markersize=12)
-               plt.legend([label1, label2], loc='upper right',fontsize = 20)
-               plt.title('Data Comparison',fontsize = 30);
-               plt.ylabel('Angle (°)',fontsize = 30);
-               plt.xlabel('Cycle (%)',fontsize = 30);
+               plt.legend([label1, label2], loc='upper right',fontsize = lsize)
+               plt.title(title,fontsize = fsize);
+               plt.ylabel(yaxis,fontsize = fsize);
+               plt.xlabel(xaxis,fontsize = fsize);
                plt.grid();
+               if save:
+                    plt.savefig(save_name + '.pdf')    
                plt.show();
 
                return poly1,poly2;
