@@ -69,17 +69,17 @@ class DataAnalysis:
                 integrating the accelerometer with gyroscope.
                 Must be determined between 0 and 1.
             beta_mad: float
-            There is a tradeoff in the beta parameter 
-            between accuracy and response speed. Must
-            be determined according with the Gyroscope
-            error. Used for the first quaternion 
-            orientation. For MadgwickAHRS filte.
-            beta_mad2: float
-            There is a tradeoff in the beta parameter 
-            between accuracy and response speed. Must
-            be determined according with the Gyroscope
-            error. Used for the others orientations.
-            For MadgwickAHRS filte.
+                There is a tradeoff in the beta parameter 
+                between accuracy and response speed. Must
+                be determined according with the Gyroscope
+                error. Used for the first quaternion 
+                orientation. For MadgwickAHRS filte.
+                beta_mad2: float
+                There is a tradeoff in the beta parameter 
+                between accuracy and response speed. Must
+                be determined according with the Gyroscope
+                error. Used for the others orientations.
+                For MadgwickAHRS filte.
             conj: bool
                 Determine if the quaternion resulted will be
                 conjugated or not.
