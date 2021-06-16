@@ -450,3 +450,54 @@ class DataHandler:
         dataDict['Time'] = np.arange(0,size/freq,1/freq)
         
         return dataDict
+    
+    def toDataframe(data,data_calib,low_pass=.1,freq=75):
+        """This function receives the data from JAMA 
+        performs the data calibration and applies all filters. 
+        After all manipulations the results are saved to a
+        pandas datafarme.
+
+        Parameters
+        ----------
+        data: ndarray
+            Esp data returned by 'split_raw_data'.
+        data_calib: ndarray
+            Esp calibration data returned by 
+            'split_raw_data'.
+        low_pass: float
+            Low-pass filter intensity.
+        freq: int
+            Frequency of data acquisition.
+
+        Returns
+        -------
+        df: pandas dataframe
+            A pandas dataframe with the euler angles computed
+            using quaternions formulations.
+
+        See Also
+        --------
+        Developed by T.F Almeida in 25/03/2021
+
+        For more information see:
+        https://github.com/tuliofalmeida/pyjama
+        https://github.com/tuliofalmeida/jama     
+        """         
+        time,acc,gyr,mag= pjl.DataHandler.get_imu_data(data)
+        time_calib,acc_calib,gyr_calib,mag_calib = pjl.DataHandler.get_imu_data(data_calib)
+        time = np.arange(0, len(time)/freq, 1/freq)
+        
+        acc, gyr, mag = pjl.DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
+        accf = pjl.DataProcessing.low_pass_filter(acc,low_pass)
+        gyrf = pjl.DataProcessing.low_pass_filter(gyr,low_pass)
+        magf = pjl.DataProcessing.low_pass_filter(mag,low_pass)
+
+        df = pd.DataFrame({'Time':time[:]                                                            ,
+                        'Acc_X':acc[:,0]         ,'Acc_Y': acc[:,1]         ,'Acc_Z': acc[:,2]       ,
+                        'Gyr_X':gyr[:,0]         ,'Gyr_Y': gyr[:,1]         ,'Gyr_Z': gyr[:,2]       ,
+                        'Mag_X':mag[:,0]         ,'Mag_Y': mag[:,1]         ,'Mag_Z': mag[:,2]       ,
+                        'Acc_X_Filt':accf[:,0]   ,'Acc_Y_Filt':accf[:,1]    ,'Acc_Z_Filt': accf[:,2] ,
+                        'Gyr_X_Filt':gyrf[:,0]   ,'Gyr_Y_Filt':gyrf[:,1]    ,'Gyr_Z_Filt': gyrf[:,2] ,
+                        'Mag_X_Filt':magf[:,0]   ,'Mag_Y_Filt':magf[:,1]    ,'Mag_Z_Filt': magf[:,2] })
+
+        return df
