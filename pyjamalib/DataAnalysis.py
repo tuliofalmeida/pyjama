@@ -528,13 +528,13 @@ class DataAnalysis:
                     madRoll=pyjamalib.DataProcessing.patternCI(MADR[:,0],MADR[:,1],poly_degree=poly_degree,CI=CI, df=False);
                     mad_R = pyjamalib.DataProcessing.rom_mean(MADRrom)
                     index = np.concatenate((index,['Flex/Ext_Madgwick']))
-                    Rom = np.concatenate((Rom,[max(df['Flex/Ext_Kalman_GN'])-min(df['Flex/Ext_Kalman_GD'])]))
+                    Rom = np.concatenate((Rom,[max(df['Flex/Ext_Madgwick'])-min(df['Flex/Ext_Madgwick'])]))
                     Mean = np.concatenate((Mean,[mad_R])) 
                     Std = np.concatenate((Std,[madRoll[1]])) 
                     CIlist = np.concatenate((CIlist,[madRoll[0]]))
                     Var = np.concatenate((Var,[madRoll[7]]))
-                    Min = np.concatenate((Min,[min(df['Flex/Ext_Kalman_GN'])]))
-                    Max = np.concatenate((Max,[max(df['Flex/Ext_Kalman_GN'])]))
+                    Min = np.concatenate((Min,[min(df['Flex/Ext_Madgwick'])]))
+                    Max = np.concatenate((Max,[max(df['Flex/Ext_Madgwick'])]))
                     MinEst = np.concatenate((MinEst,[madRoll[4]]))
                     MaxEst = np.concatenate((MaxEst,[madRoll[5]]))
 
