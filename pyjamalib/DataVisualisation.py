@@ -16,11 +16,11 @@ class DataVisualisation:
     For more information see:
     https://github.com/tuliofalmeida/pyjama    
     """
-    def pyjama_subplot(data,time,box_data=None,title='Title',x_label='Time (s)',
-                    y_label='Y Label',data_name=None,labels=None,box_text_a=None,
-                    box_text_b=None,h_box=None,colors=None,grid=True,fig_size=(18,12),
-                    title_size=28,subtitle_size=20,box_size=14,legend_size=14,
-                    label_size=20,dpi=300,save_fig=False,ret=False):
+    def subplot(data,time,box_data=None,title='Title',x_label='Time (s)',
+                y_label='Y Label',data_name=None,labels=None,box_text_a=None,
+                box_text_b=None,h_box=None,colors=None,grid=True,fig_size=(18,12),
+                title_size=28,subtitle_size=20,box_size=14,legend_size=14,
+                label_size=20,dpi=300,fig_name='Fig',save_fig=False,ret=False):
         
         """Plot the data according to the size of 
         the array in subplots. It allows to plot a box 
@@ -79,7 +79,10 @@ class DataVisualisation:
             Axis font size.
         dpi: int
             Dots per inch, enhances the details 
-            of the image.  
+            of the image.
+        fig_name: str
+            If title equals none, the fig_name
+            will be used as name of saved fig.              
         save_fig: bool
             If true, the plot will be saved in 
             content or script folder with a 
@@ -155,7 +158,10 @@ class DataVisualisation:
         for ax in axs.flat:
             ax.set(xlabel=x_label, ylabel=y_label)
             ax.yaxis.label.set_size(label_size)
+            ax.set_xticks
             ax.xaxis.label.set_size(label_size)
+            ax.xaxis.set_tick_params(labelsize=label_size)
+            ax.yaxis.set_tick_params(labelsize=label_size)
             ax.label_outer()
             ax.legend(loc="upper right",fontsize=legend_size)
             if grid:
@@ -164,8 +170,12 @@ class DataVisualisation:
         plt.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.9,wspace=0.4,hspace=0.4)
         
         if save_fig:
-            name_fig = title + '.png'
-            plt.savefig(name_fig, dpi=dpi)
+            if type(title) == type(None):    
+                name_fig = (fig_name + '.pdf')
+                plt.savefig(name_fig, dpi=dpi)
+            else:             
+                name_fig = (title + '.pdf')
+                plt.savefig(name_fig, dpi=dpi)
 
         if ret:
             return fig
