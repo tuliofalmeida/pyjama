@@ -1,9 +1,9 @@
 Metadata-Version: 2.1
 Name: pyjamalib
-Version: 0.7.5
+Version: 1.0.0
 Summary: A library for analyze joint angles from IMU data
 Home-page: https://github.com/tuliofalmeida/pyjama
-Author: Túlio 1F. Almeida
+Author: Túlio F. Almeida
 Author-email: tuliofalmeida@hotmail.com
 License: MIT
 Description: 
@@ -70,7 +70,7 @@ Description:
         -----------
         
         - Example of using the library using data extracted using JAMA. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_JAMA_exemple.ipynb)      
-        - Example of using the library using data extracted using Vicon and Xsens. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_Validation.ipynb) 
+        - Example of using the library using data extracted using Vicon and Xsens. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/Pyjama_total_capture.ipynb) 
         
         # Contributing
         --------------

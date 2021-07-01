@@ -1,3 +1,4 @@
+import pyjamalib
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -483,14 +484,14 @@ class DataHandler:
         https://github.com/tuliofalmeida/pyjama
         https://github.com/tuliofalmeida/jama     
         """         
-        time,acc,gyr,mag= pjl.DataHandler.get_imu_data(data)
-        time_calib,acc_calib,gyr_calib,mag_calib = pjl.DataHandler.get_imu_data(data_calib)
+        time,acc,gyr,mag= DataHandler.get_imu_data(data)
+        time_calib,acc_calib,gyr_calib,mag_calib = DataHandler.get_imu_data(data_calib)
         time = np.arange(0, len(time)/freq, 1/freq)
         
-        acc, gyr, mag = pjl.DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
-        accf = pjl.DataProcessing.low_pass_filter(acc,low_pass)
-        gyrf = pjl.DataProcessing.low_pass_filter(gyr,low_pass)
-        magf = pjl.DataProcessing.low_pass_filter(mag,low_pass)
+        acc, gyr, mag = DataHandler.calibration_imu(acc,gyr,mag,mag_calib)
+        accf = pyjamalib.DataProcessing.low_pass_filter(acc,low_pass)
+        gyrf = pyjamalib.DataProcessing.low_pass_filter(gyr,low_pass)
+        magf = pyjamalib.DataProcessing.low_pass_filter(mag,low_pass)
 
         df = pd.DataFrame({'Time':time[:]                                                            ,
                         'Acc_X':acc[:,0]         ,'Acc_Y': acc[:,1]         ,'Acc_Z': acc[:,2]       ,

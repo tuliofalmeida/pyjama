@@ -2473,8 +2473,8 @@ class DataProcessing:
         return mean,std
 
     def pattern_extraction(jointAngle,time,threshold,cycle=2,df=True,plot=False,bias=0,
-                           save=False, save_name='Data',fsize=30, title='Pattern Extraction',
-                           yaxis='Angle (°)',xaxis='Cycle (%)'):
+                           flip = False ,save=False, save_name='Data',fsize=30, 
+                           title='Pattern Extraction', yaxis='Angle (°)',xaxis='Cycle (%)'):
         """ Find and extract patterns from the data. 
            Able to plot all overlapping pattern data 
            for easy understanding. This function was 
@@ -2506,6 +2506,8 @@ class DataProcessing:
             Determines if the function will return the plot.
         bias: int optional
             Value to compensate the cycle adjust.
+        flip: bool
+            Variable to compensate the cycle representation.       
         save: bool
             If true save a fig as pdf
         save_name: str
@@ -2539,7 +2541,7 @@ class DataProcessing:
         if plot == True:
             plt.figure(figsize=(12,9))
         
-        diff = DataProcessing.low_pass_filter((jointAngle[1:] - jointAngle[:-1]))
+        diff = pyjamalib.DataProcessing.low_pass_filter((jointAngle[1:] - jointAngle[:-1]))
         zero_crossings = np.where(np.diff(np.signbit(jointAngle-threshold)))[0]
         Time_Data_Array = []
         mCicloqtd = cycle
@@ -2555,17 +2557,21 @@ class DataProcessing:
                 Time_Data_Array.append((tempo[ç],data[ç]));
     
             if plot == True:
-                plt.plot(tempo, DataProcessing.low_pass_filter(jointAngle[zero_crossings[0+ciclo]:zero_crossings[mCicloqtd+ciclo]]));
-
+                if flip == True:
+                     plt.plot(tempo,pyjamalib.DataProcessing.low_pass_filter(np.flip(data)))                   
+                else:
+                    plt.plot(tempo,pyjamalib.DataProcessing.low_pass_filter(data))
         if plot == True:
             plt.title(title,fontsize = fsize);
             plt.ylabel(yaxis,fontsize = fsize);
             plt.xlabel(xaxis,fontsize = fsize);
+            plt.yticks(fontsize = fsize)
+            plt.xticks(fontsize = fsize)
             plt.grid();
             if save == True:
                 plt.savefig(save_name + '.pdf')
             plt.show();
-
+        
         return np.asarray(Time_Data_Array),np.asarray(rom)
 
     def patternCI(all_x, all_y,poly_degree = 1,CI = 1.96,df = True,plot=False,
@@ -2664,6 +2670,8 @@ class DataProcessing:
             plt.title(title).set_size(fsize);
             plt.xlabel(x_label).set_size(fsize);
             plt.ylabel(y_label).set_size(fsize);
+            plt.yticks(fontsize = fsize)
+            plt.xticks(fontsize = fsize)
             plt.legend([label1, label2, label3], loc='upper right',fontsize = lsize)
             plt.grid();
             if save == True:
@@ -2741,6 +2749,8 @@ class DataProcessing:
                plt.title(title,fontsize = fsize);
                plt.ylabel(yaxis,fontsize = fsize);
                plt.xlabel(xaxis,fontsize = fsize);
+               plt.yticks(fontsize = fsize);
+               plt.xticks(fontsize = fsize);
                plt.grid();
                if save:
                     plt.savefig(save_name + '.pdf')    

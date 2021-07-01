@@ -7,8 +7,8 @@ setuptools.setup(
 
     name="pyjamalib",
     packages = ['pyjamalib'],
-    version="0.7.5",
-    author="Túlio 1F. Almeida",
+    version="1.0.0",
+    author="Túlio F. Almeida",
     author_email="tuliofalmeida@hotmail.com",
     description="A library for analyze joint angles from IMU data",
     long_description=long_description,
