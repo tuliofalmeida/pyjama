@@ -9,6 +9,11 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tuliofalmeida/pyjama/blob/main/PyJama_JAMA_exemple.ipynb)
 [![stars](https://img.shields.io/github/stars/tuliofalmeida?style=social)](https://github.com/tuliofalmeida/pyjama/stargazers)
 
+<p align="center">
+  <img width="900" height="480" src="https://github.com/tuliofalmeida/pyjama/blob/main/docs/pyjama%20logo.png">
+</p>
+
+
 # PyJama - Python for Joint Angle Measurement and Acquisition
 ---------------------------------------------------------
 
