@@ -10,7 +10,7 @@
 [![stars](https://img.shields.io/github/stars/tuliofalmeida?style=social)](https://github.com/tuliofalmeida/pyjama/stargazers)
 
 <p align="center">
-  <img width="900" height="480" src="https://github.com/tuliofalmeida/pyjama/blob/main/docs/pyjama%20logo.png">
+  <img width="900" height="300" src="https://github.com/tuliofalmeida/pyjama/blob/main/docs/pyjama%20logo.png">
 </p>
 
 
