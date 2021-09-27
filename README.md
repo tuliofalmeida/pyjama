@@ -93,7 +93,8 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 # Publications
 --------------
 
-The publications related to this project are still in the process of being published. If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
+- de Almeida, T.F.; Morya, E;Rodrigues, A.C.; Dantas, A.F.O.d.A.Development of a Low-CostOpen-Source Measurement Systemfor Joint Angle Estimation.Sensors, 2021 (In process)
+- If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
 
 # Credits 
 ---------
