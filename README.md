@@ -93,7 +93,7 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 # Publications
 --------------
 
-- de Almeida, T.F.; Morya, E; Rodrigues, A.C.; Dantas, A.F.O.d.A. Development of a Low-Cost Open-Source Measurement System for Joint Angle Estimation. Sensors, 2021 (In process)
+- de Almeida TF, Morya E, Rodrigues AC, de Azevedo Dantas AFO. Development of a Low-Cost Open-Source Measurement System for Joint Angle Estimation. Sensors. 2021; 21(19):6477. https://doi.org/10.3390/s21196477 
 - If you publish any paper using JAMA please contact us to update [here!](mailto:tuliofalmeida@hotmail.com)
 
 # Credits 
