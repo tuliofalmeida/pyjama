@@ -62,7 +62,7 @@ pip install -e pyjamalib
 
 By calling `pip list` you should see `pyjamalib` now as an installed package:
 ```
-pyjamalib (0.x.x, /path/to/pyjamalib)
+pyjamalib (1.x.x, /path/to/pyjamalib)
 ```
 
 # Examples
